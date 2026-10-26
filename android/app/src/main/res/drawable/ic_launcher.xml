@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Иконка приложения: две симметричные стрелки по центру
+  (двусторонний обмен данными: serial <-> TCP)
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Фон: ровный синий квадрат -->
+    <path
+        android:fillColor="#0A66FF"
+        android:pathData="M0,0h108v108h-108z" />
+
+    <!-- Верхняя стрелка (вправо: устройство -> TCP) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M34,44 L66,44 M58,37 L66,44 L58,51" />
+
+    <!-- Нижняя стрелка (влево: TCP -> устройство) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M74,64 L42,64 M50,57 L42,64 L50,71" />
+</vector>

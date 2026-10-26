@@ -1,0 +1,36 @@
+name: ble_tcp_bridge
+description: "BLE / USB to TCP bridge for Android. Bridges serial data from BLE Serial or USB UART devices to a local TCP server on port 8080."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # BLE (Bluetooth Low Energy) support
+  flutter_blue_plus: ^2.3.14
+
+  # USB serial (FTDI, CDC, CH340, CP210x, PL2303, Arduino, etc.)
+  usb_serial: ^0.5.2
+
+  # Runtime permissions
+  permission_handler: ^11.3.1
+
+  # State management
+  provider: ^6.1.2
+
+  # Определение версии Android (для BLE-разрешений)
+  device_info_plus: ^13.3.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
