@@ -8,10 +8,12 @@ import 'package:provider/provider.dart';
 
 import '../models/device_info.dart';
 import '../services/bridge_controller.dart';
+import '../services/settings_controller.dart';
 import '../widgets/device_card.dart';
 import '../widgets/status_banner.dart';
 
-/// Вкладка «Устройства»: поиск BLE и USB устройств, подключение.
+/// Вкладка «Устройства»: поиск BLE, Bluetooth Classic и USB устройств,
+/// подключение.
 class DevicesScreen extends StatefulWidget {
   const DevicesScreen({super.key});
 
@@ -20,10 +22,11 @@ class DevicesScreen extends StatefulWidget {
 }
 
 class _DevicesScreenState extends State<DevicesScreen> {
-  final List<DeviceInfo> _bleDevices = [];
+  final List<DeviceInfo> _btDevices = [];
   final List<DeviceInfo> _usbDevices = [];
 
   bool _bleScanning = false;
+  bool _classicSearching = false;
   bool _usbLoading = false;
   bool _connecting = false;
 
@@ -35,6 +38,9 @@ class _DevicesScreenState extends State<DevicesScreen> {
   StreamSubscription? _bleFoundSub;
   StreamSubscription? _bleErrorSub;
   StreamSubscription? _adapterSub;
+  StreamSubscription? _classicFoundSub;
+  StreamSubscription? _classicErrorSub;
+  StreamSubscription? _classicStateSub;
 
   @override
   void initState() {
@@ -48,11 +54,12 @@ class _DevicesScreenState extends State<DevicesScreen> {
     _bleFoundSub = bridge.bleService.onDeviceFound.listen((d) {
       if (!mounted) return;
       setState(() {
-        final idx = _bleDevices.indexWhere((e) => e.id == d.id);
+        final idx =
+            _btDevices.indexWhere((e) => e.type == d.type && e.id == d.id);
         if (idx >= 0) {
-          _bleDevices[idx] = d;
+          _btDevices[idx] = d;
         } else {
-          _bleDevices.add(d);
+          _btDevices.add(d);
         }
       });
     });
@@ -65,13 +72,42 @@ class _DevicesScreenState extends State<DevicesScreen> {
     _adapterSub = bridge.bleService.onAdapterState.listen((state) {
       if (!mounted) return;
       if (state == BluetoothAdapterState.off) {
-        setState(() => _error = 'Bluetooth выключен. Включите Bluetooth');
+        setState(() =>
+            _error = context.read<SettingsController>().s.errorBluetoothOff);
       } else if (state == BluetoothAdapterState.on) {
         setState(() => _error = null);
       }
     });
 
+    // Bluetooth Classic
+    _classicFoundSub = bridge.classicService.onDeviceFound.listen((d) {
+      if (!mounted) return;
+      setState(() {
+        final idx =
+            _btDevices.indexWhere((e) => e.type == d.type && e.id == d.id);
+        if (idx >= 0) {
+          _btDevices[idx] = d;
+        } else {
+          _btDevices.add(d);
+        }
+      });
+    });
+
+    _classicErrorSub = bridge.classicService.onError.listen((msg) {
+      if (!mounted) return;
+      setState(() => _error = msg);
+    });
+
+    _classicStateSub = bridge.classicService.onEnabledChanged.listen((enabled) {
+      if (!mounted) return;
+      if (!enabled) {
+        setState(() =>
+            _error = context.read<SettingsController>().s.errorBluetoothOff);
+      }
+    });
+
     bridge.bleService.listenAdapterState();
+    bridge.classicService.listenAdapterState();
     await _loadUsbDevices();
   }
 
@@ -79,6 +115,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
 
   Future<bool> _ensureBlePermissions() async {
     final bridge = context.read<BridgeController>();
+    final s = context.read<SettingsController>().s;
 
     if (!await bridge.bleService.ensureReady()) return false;
 
@@ -87,8 +124,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
       status = await Permission.bluetoothScan.request();
     }
     if (!status.isGranted) {
-      setState(() => _error = 'Нет разрешения на сканирование BLE. '
-          'Выдайте его: Настройки → Приложения → BLE/USB TCP Bridge → Разрешения');
+      setState(() => _error = s.errorBleScan);
       return false;
     }
 
@@ -97,21 +133,18 @@ class _DevicesScreenState extends State<DevicesScreen> {
       status = await Permission.bluetoothConnect.request();
     }
     if (!status.isGranted) {
-      setState(() => _error = 'Нет разрешения на подключение BLE');
+      setState(() => _error = s.errorBleConnect);
       return false;
     }
 
     // Разрешение на местоположение требуется ТОЛЬКО для Android ≤ 11 (API ≤ 30).
-    // На Android 12+ BLE-скан выполняется через BLUETOOTH_SCAN
-    // с флагом neverForLocation, поэтому местоположение не нужно.
     final androidInfo = await DeviceInfoPlugin().androidInfo;
     if (androidInfo.version.sdkInt <= 30) {
       final locStatus = await Permission.location.status;
       if (!locStatus.isGranted) {
         final loc = await Permission.location.request();
         if (!loc.isGranted) {
-          setState(() => _error = 'Для BLE-сканирования нужно разрешение '
-              'на местоположение (Android 11 и ниже)');
+          setState(() => _error = s.errorLocation);
           return false;
         }
       }
@@ -134,7 +167,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
     setState(() {
       _bleScanning = true;
       _error = null;
-      _bleDevices.clear();
+      _btDevices.clear();
     });
 
     if (!await _ensureBlePermissions()) {
@@ -164,7 +197,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
 
     setState(() {
       _bleSerialOnly = value;
-      _bleDevices.clear();
+      _btDevices.clear();
     });
 
     // Если скан шёл — перезапускаем его с новым фильтром
@@ -174,6 +207,63 @@ class _DevicesScreenState extends State<DevicesScreen> {
     } else {
       setState(() => _error = null);
     }
+  }
+
+  /// Общий поиск Bluetooth: запускает/останавливает сканирование BLE
+  /// и поиск Classic одновременно.
+  Future<void> _toggleBtScan() async {
+    final bridge = context.read<BridgeController>();
+
+    final scanning = _bleScanning || _classicSearching;
+    if (scanning) {
+      await Future.wait([
+        bridge.bleService.stopScan(),
+        bridge.classicService.stopDiscovery(),
+      ]);
+      setState(() {
+        _bleScanning = false;
+        _classicSearching = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _bleScanning = true;
+      _classicSearching = true;
+      _error = null;
+      _btDevices.clear();
+    });
+
+    if (!await _ensureBlePermissions()) {
+      setState(() {
+        _bleScanning = false;
+        _classicSearching = false;
+      });
+      return;
+    }
+
+    try {
+      await Future.wait([
+        bridge.bleService.startScan(filterSerialOnly: _bleSerialOnly),
+        bridge.classicService.startDiscovery(filterSerialOnly: _bleSerialOnly),
+      ]);
+    } catch (_) {
+      setState(() {
+        _bleScanning = false;
+        _classicSearching = false;
+      });
+    }
+
+    // Автоостановка по таймауту
+    Future.delayed(const Duration(seconds: 13), () {
+      if (!mounted) return;
+      if (_bleScanning) bridge.bleService.stopScan();
+      if (_classicSearching) bridge.classicService.stopDiscovery();
+      setState(() {
+        _bleScanning = false;
+        _classicSearching = false;
+      });
+    });
   }
 
   // ================= USB =================
@@ -195,7 +285,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
       if (!mounted) return;
       setState(() {
         _usbLoading = false;
-        _error = 'Ошибка чтения USB устройств: $e';
+        _error = '${context.read<SettingsController>().s.errorUsbList}: $e';
       });
     }
   }
@@ -217,8 +307,10 @@ class _DevicesScreenState extends State<DevicesScreen> {
     setState(() {
       _connecting = false;
       _bleScanning = false;
+      _classicSearching = false;
       if (!ok) {
-        _error = 'Не удалось подключиться к "${device.name}"';
+        _error =
+            context.read<SettingsController>().s.connectFailed(device.name);
       }
     });
   }
@@ -233,6 +325,9 @@ class _DevicesScreenState extends State<DevicesScreen> {
     _bleFoundSub?.cancel();
     _bleErrorSub?.cancel();
     _adapterSub?.cancel();
+    _classicFoundSub?.cancel();
+    _classicErrorSub?.cancel();
+    _classicStateSub?.cancel();
     super.dispose();
   }
 
@@ -241,11 +336,12 @@ class _DevicesScreenState extends State<DevicesScreen> {
   @override
   Widget build(BuildContext context) {
     final bridge = context.watch<BridgeController>();
+    final s = context.watch<SettingsController>().s;
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Устройства'),
+        title: Text(s.tabDevices),
         centerTitle: true,
       ),
       body: RefreshIndicator(
@@ -286,58 +382,45 @@ class _DevicesScreenState extends State<DevicesScreen> {
                 ),
               ),
 
-            // ===== BLE секция =====
+            // ===== Bluetooth секция (общий поиск BLE + Classic) =====
             _sectionHeader(
               context,
               icon: Icons.bluetooth,
-              title: 'BLE устройства',
-              action: TextButton.icon(
-                onPressed: _toggleBleScan,
-                icon: _bleScanning
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(_bleScanning ? Icons.stop : Icons.search, size: 18),
-                label: Text(_bleScanning ? 'Стоп' : 'Сканировать'),
+              title: s.secBt,
+              action: _scanButton(
+                label:
+                    (_bleScanning || _classicSearching) ? s.btnStop : s.btnScan,
+                isActive: _bleScanning || _classicSearching,
+                onTap: _toggleBtScan,
               ),
             ),
-
-            // Переключатель фильтра: только Serial-устройства
             SwitchListTile(
               dense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               secondary: Icon(
                 Icons.filter_alt_outlined,
-                color: _bleSerialOnly
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.outline,
+                color: _bleSerialOnly ? scheme.primary : scheme.outline,
               ),
-              title: const Text(
-                'Только Serial-устройства',
-                style: TextStyle(fontSize: 14),
+              title: Text(
+                s.filterTitle,
+                style: const TextStyle(fontSize: 14),
               ),
-              subtitle: const Text(
-                'Показывать только BLE Serial / Nordic UART',
-                style: TextStyle(fontSize: 12),
+              subtitle: Text(
+                s.filterSubtitle,
+                style: const TextStyle(fontSize: 12),
               ),
               value: _bleSerialOnly,
               onChanged: _toggleBleFilter,
             ),
 
-            if (_bleDevices.isEmpty && !_bleScanning)
+            if (_btDevices.isEmpty && !_bleScanning && !_classicSearching)
               _emptyHint(
                 context,
                 icon: Icons.bluetooth_searching,
-                text: _bleSerialOnly
-                    ? 'Нажмите «Сканировать».\n'
-                        'Фильтр «Только Serial» активен — будут показаны лишь '
-                        'устройства BLE Serial (HM-10, HC-08, Nordic UART и т.п.).'
-                    : 'Нажмите «Сканировать», чтобы найти BLE устройства.\n'
-                        'Поддерживаются BLE Serial (HM-10, HC-08, NUS).',
+                text: _bleSerialOnly ? s.emptyBleFiltered : s.emptyBt,
               ),
-            for (final d in _bleDevices)
+
+            for (final d in _btDevices)
               DeviceCard(
                 device: d,
                 isConnected: bridge.connectedDevice?.id == d.id &&
@@ -352,17 +435,11 @@ class _DevicesScreenState extends State<DevicesScreen> {
             _sectionHeader(
               context,
               icon: Icons.usb,
-              title: 'USB устройства',
-              action: TextButton.icon(
-                onPressed: _usbLoading ? null : _loadUsbDevices,
-                icon: _usbLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.refresh, size: 18),
-                label: const Text('Обновить'),
+              title: s.secUsb,
+              action: _scanButton(
+                label: s.btnRefresh,
+                isActive: _usbLoading,
+                onTap: _usbLoading ? null : _loadUsbDevices,
               ),
             ),
 
@@ -370,8 +447,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
               _emptyHint(
                 context,
                 icon: Icons.usb_off,
-                text: 'Подключите USB UART адаптер (CH340, CP2102, FTDI, '
-                    'PL2303 и др.) через OTG-кабель.',
+                text: s.emptyUsb,
               ),
 
             for (final d in _usbDevices)
@@ -390,7 +466,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
                 child: FilledButton.tonalIcon(
                   onPressed: _disconnect,
                   icon: const Icon(Icons.link_off),
-                  label: const Text('Отключить устройство'),
+                  label: Text(s.btnDisconnect),
                   style: FilledButton.styleFrom(
                     foregroundColor: scheme.error,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -400,6 +476,24 @@ class _DevicesScreenState extends State<DevicesScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _scanButton({
+    String? label,
+    required bool isActive,
+    required VoidCallback? onTap,
+  }) {
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: isActive
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.search, size: 18),
+      label: Text(label ?? ''),
     );
   }
 

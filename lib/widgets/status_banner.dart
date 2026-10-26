@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../services/bridge_controller.dart';
+import '../services/settings_controller.dart';
 
 /// Баннер с текущим статусом подключения к устройству.
 class StatusBanner extends StatelessWidget {
@@ -11,23 +13,24 @@ class StatusBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final s = context.watch<SettingsController>().s;
     final state = bridge.connectionState;
 
     final (Color color, IconData icon, String text) = switch (state) {
       DeviceConnectionState.connected => (
           Colors.green,
           Icons.link,
-          'Подключено: ${bridge.connectedDevice?.name ?? ''}',
+          '${s.statusConnected}: ${bridge.connectedDevice?.name ?? ''}',
         ),
       DeviceConnectionState.connecting => (
           Colors.orange,
           Icons.sync,
-          'Подключение...',
+          s.statusConnecting,
         ),
       DeviceConnectionState.disconnected => (
           scheme.outline,
           Icons.link_off,
-          'Устройство не подключено',
+          s.statusDisconnected,
         ),
     };
 

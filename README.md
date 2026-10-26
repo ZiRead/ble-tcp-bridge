@@ -4,21 +4,28 @@
 > (архитектура, сервисы, расширение функциональности).
 
 Приложение для Android, которое превращает смартфон в мост между
-**serial-устройствами** (BLE Serial или USB UART) и **локальным TCP-сервером**
-на порту **8080**.
+**serial-устройствами** (BLE Serial, Bluetooth Classic SPP или USB UART)
+и **локальным TCP-сервером** на порту **8080**.
 
 ## Возможности
 
 ### 📡 Вкладка «Устройства»
-- **BLE-сканирование** — поиск BLE устройств рядом (RSSI, имя).
+- **Общий поиск Bluetooth** — одна кнопка «Сканировать» ищет одновременно:
+  - **BLE** устройства (RSSI, имя);
+  - **Bluetooth Classic SPP** (HC-05, HC-06 и аналогичные).
+- **Подписи в списке** — у каждого устройства показан тип (`BLE` / `Classic`),
+  уровень сигнала и **адрес Bluetooth (MAC)** в отдельной строке.
 - **Фильтр «Только Serial-устройства»** — переключатель, который отсеивает
-  устройства, непригодные для serial-обмена: остаются только BLE Serial
-  модули (имена HM-10, HC-08, JDY, AT-09 и т.п.) и устройства с сервисами
-  `FFE0`/Nordic UART в рекламном пакете.
+  непригодные для serial-обмена устройства **обоих типов**:
+  - BLE: по сервисам `FFE0`/Nordic UART в рекламном пакете и по имени
+    (HM-10, HC-08, JDY, AT-09 и т.п.);
+  - Classic: по имени serial-модуля (HC-05, HC-06, UART, SPP и т.п.).
 - **BLE Serial** — поддержка популярных BLE Serial модулей:
   - HM-10 / HC-08 / CC2541 (сервис `FFE0`, характеристика `FFE1`);
   - Nordic UART Service (NUS) — `6E400001/2/3`;
   - автоматический поиск любой характеристики с write + notify.
+- **Bluetooth Classic (SPP)** — модули HC-05 / HC-06 (пакет
+  `flutter_bluetooth_serial`), подключение по MAC через RFCOMM.
 - **USB UART** — поддержка всех распространённых чипов UART/TTL:
   - WCH **CH340 / CH341**;
   - Silicon Labs **CP2102 / CP210x**;
@@ -26,6 +33,9 @@
   - Prolific **PL2303**;
   - Arduino, Teensy, STM32 VCP, SEGGER J-Link и другие CDC-устройства.
 - Подключение одним нажатием, индикация статуса.
+
+### ⚙️ Вкладка «Настройки»
+- Выбор языка интерфейса: **Русский / English** (сохраняется между запусками).
 
 ### 🌐 Вкладка «TCP сервер»
 - Запуск/остановка локального TCP-сервера на порту **8080** (порт настраивается).
@@ -40,9 +50,11 @@
 | Компонент | Пакет |
 |---|---|
 | BLE | [`flutter_blue_plus`](https://pub.dev/packages/flutter_blue_plus) |
+| Bluetooth Classic (SPP) | [`flutter_bluetooth_serial`](https://pub.dev/packages/flutter_bluetooth_serial) |
 | USB Serial | [`usb_serial`](https://pub.dev/packages/usb_serial) |
 | Разрешения | [`permission_handler`](https://pub.dev/packages/permission_handler) |
 | Состояние | [`provider`](https://pub.dev/packages/provider) |
+| Локализация | `flutter_localizations` + [`shared_preferences`](https://pub.dev/packages/shared_preferences) |
 | TCP-сервер | `dart:io` (`ServerSocket`) |
 
 ## Сборка
@@ -59,26 +71,32 @@ APK появится в `build/app/outputs/flutter-apk/`.
 - JDK 17 (Temurin/OpenJDK)
 - Android SDK: `compileSdk 36`, `minSdk 23`, `targetSdk 35+`
 - Gradle 8.14 / AGP 8.11.1 (версии уже заданы в проекте)
-- Для запуска на устройстве: Android 6.0+ (BLE), поддержка USB Host (OTG)
+- Для запуска на устройстве: Android 6.0+ (BLE/Classic), поддержка USB Host (OTG)
 - Примечание: путь проекта не должен содержать кириллицу/пробелы —
   Java/Gradle некорректно работает с не-ASCII путями (`flutter build` из пути
   с пробелами невозможен).
+- Примечание: `flutter_bluetooth_serial` 0.4.0 требует локального патча
+  для сборки под AGP 8+ (namespace, mavenCentral, compileSdk 36) —
+  подробности в [`DEV_GUIDE.md`](DEV_GUIDE.md).
 
 ## Разрешения Android
 
-- `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT` (Android 12+)
+- `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT` (Android 12+; BLE и Classic)
 - `BLUETOOTH`, `BLUETOOTH_ADMIN`, `ACCESS_FINE_LOCATION` (Android ≤ 11)
 - `INTERNET`, `ACCESS_NETWORK_STATE` (TCP-сервер)
 - USB Host + `device_filter.xml` (CH340, CP210x, FTDI, PL2303, Arduino и др.)
+220 lines merged.
 
 ## Как использовать
 
 1. Установите приложение на Android-смартфон.
 2. **Вкладка «Устройства»**:
-   - BLE: нажмите «Сканировать», выберите устройство.
+   - Bluetooth: нажмите «Сканировать» — найдутся BLE и Classic устройства,
+     выберите нужное (тип и адрес указаны в карточке).
    - USB: подключите адаптер через OTG, нажмите «Обновить», выберите устройство.
-3. **Вкладка «TCP сервер»**: нажмите «Запустить сервер».
-4. Подключайтесь с любого устройства в локальной сети:
+3. **Вкладка «Настройки»** (опционально): выберите язык интерфейса.
+4. **Вкладка «TCP сервер»**: нажмите «Запустить сервер».
+5. Подключайтесь с любого устройства в локальной сети:
    ```bash
    # пример: чтение данных с serial-устройства
    nc <IP-смартфона> 8080
@@ -89,27 +107,34 @@ APK появится в `build/app/outputs/flutter-apk/`.
 
 ```
 lib/
-├── main.dart                     # точка входа, тема, Provider
+├── main.dart                     # точка входа, тема, локализация, Provider
+├── l10n/
+│   └── app_strings.dart          # строки RU/EN
 ├── models/
-│   └── device_info.dart          # DeviceInfo, BridgeLog, DataPacket
+│   └── device_info.dart          # DeviceInfo (type, address), BridgeLog, DataPacket
 ├── services/
 │   ├── serial_port.dart          # абстракция SerialPort
-│   ├── ble_service.dart           # BLE скан/подключение/BLE Serial
-│   ├── usb_service.dart           # USB UART (CH340, CP210x, FTDI...)
-│   ├── tcp_server_service.dart    # TCP-сервер (dart:io)
-│   └── bridge_controller.dart     # связка serial <-> TCP
+│   ├── ble_service.dart          # BLE скан/подключение/BLE Serial
+│   ├── bt_classic_service.dart   # Bluetooth Classic SPP (HC-05/HC-06)
+│   ├── usb_service.dart          # USB UART (CH340, CP210x, FTDI...)
+│   ├── tcp_server_service.dart   # TCP-сервер (dart:io)
+│   ├── settings_controller.dart  # язык приложения
+│   └── bridge_controller.dart    # связка serial <-> TCP
 ├── screens/
-│   ├── home_screen.dart           # нижняя навигация
-│   ├── devices_screen.dart        # вкладка «Устройства»
-│   └── tcp_screen.dart            # вкладка «TCP сервер»
+│   ├── home_screen.dart          # нижняя навигация (3 вкладки)
+│   ├── devices_screen.dart       # вкладка «Устройства»
+│   ├── tcp_screen.dart           # вкладка «TCP сервер»
+│   └── settings_screen.dart      # вкладка «Настройки»
 └── widgets/
-    ├── device_card.dart
+    ├── device_card.dart          # карточка: тип, RSSI, адрес
     └── status_banner.dart
 ```
 
 ## Примечания
 
-- BLE Serial работает только с BLE-устройствами (не Bluetooth Classic —
-  HC-05/HC-06 не поддерживаются).
+- **BLE Serial** работает только с BLE-устройствами; для Bluetooth Classic
+  (HC-05/HC-06) используется SPP-профиль (RFCOMM).
 - Для USB нужен кабель OTG и поддержка USB Host на устройстве.
 - TCP-сервер слушает `0.0.0.0` — доступен всем устройствам в той же сети.
+- Фильтр «Только Serial» для Classic-устройств использует эвристику по имени
+  (библиотека не отдаёт BluetoothClass устройства).

@@ -180,6 +180,7 @@ class BleService {
             id: r.device.remoteId.str,
             name: name,
             subtitle: 'RSSI: ${r.rssi} dBm',
+            address: r.device.remoteId.str,
             rssi: r.rssi,
             raw: r,
           );

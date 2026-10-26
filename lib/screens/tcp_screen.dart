@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/device_info.dart';
 import '../services/bridge_controller.dart';
+import '../services/settings_controller.dart';
 import '../widgets/status_banner.dart';
 
 /// Вкладка «TCP сервер»: запуск локального TCP-сервера на порту 8080
@@ -25,13 +26,14 @@ class _TcpScreenState extends State<TcpScreen> {
   }
 
   Future<void> _toggleServer(BridgeController bridge) async {
+    final s = context.read<SettingsController>().s;
     if (bridge.tcpRunning) {
       await bridge.stopTcpServer();
     } else {
       final port = int.tryParse(_portController.text.trim()) ?? 8080;
       if (port < 1 || port > 65535) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Некорректный порт (1–65535)')),
+          SnackBar(content: Text(s.invalidPort)),
         );
         return;
       }
@@ -42,12 +44,13 @@ class _TcpScreenState extends State<TcpScreen> {
   @override
   Widget build(BuildContext context) {
     final bridge = context.watch<BridgeController>();
+    final s = context.watch<SettingsController>().s;
     final scheme = Theme.of(context).colorScheme;
     final running = bridge.tcpRunning;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('TCP сервер'),
+        title: Text(s.tabTcp),
         centerTitle: true,
       ),
       body: ListView(
@@ -75,7 +78,7 @@ class _TcpScreenState extends State<TcpScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        running ? 'Сервер запущен' : 'Сервер остановлен',
+                        running ? s.serverRunning : s.serverStopped,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -85,7 +88,7 @@ class _TcpScreenState extends State<TcpScreen> {
                       const Spacer(),
                       if (running)
                         Chip(
-                          label: Text('${bridge.tcpClients} клиент(ов)'),
+                          label: Text(s.clients(bridge.tcpClients)),
                           visualDensity: VisualDensity.compact,
                         ),
                     ],
@@ -97,7 +100,7 @@ class _TcpScreenState extends State<TcpScreen> {
                     children: [
                       Icon(Icons.dns, size: 20, color: scheme.primary),
                       const SizedBox(width: 8),
-                      const Text('Порт:'),
+                      Text(s.labelPort),
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
@@ -121,13 +124,11 @@ class _TcpScreenState extends State<TcpScreen> {
                     children: [
                       Icon(Icons.lan, size: 20, color: scheme.primary),
                       const SizedBox(width: 8),
-                      const Text('Адрес:'),
+                      Text(s.labelAddress),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          running
-                              ? '0.0.0.0:$bridge.tcpPort'
-                              : '—',
+                          running ? '0.0.0.0:$bridge.tcpPort' : '—',
                           style: const TextStyle(
                             fontFamily: 'monospace',
                             fontWeight: FontWeight.w600,
@@ -145,7 +146,7 @@ class _TcpScreenState extends State<TcpScreen> {
                     child: FilledButton.icon(
                       onPressed: () => _toggleServer(bridge),
                       icon: Icon(running ? Icons.stop : Icons.play_arrow),
-                      label: Text(running ? 'Остановить сервер' : 'Запустить сервер'),
+                      label: Text(running ? s.btnStopServer : s.btnStartServer),
                       style: FilledButton.styleFrom(
                         backgroundColor:
                             running ? scheme.error : scheme.primary,
@@ -159,8 +160,7 @@ class _TcpScreenState extends State<TcpScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
                       child: Text(
-                        'Совет: подключите устройство на вкладке «Устройства», '
-                        'чтобы данные передавались в TCP.',
+                        s.tipConnectDevice,
                         style: TextStyle(
                           fontSize: 12,
                           color: scheme.outline,
@@ -180,7 +180,7 @@ class _TcpScreenState extends State<TcpScreen> {
                 _statCard(
                   scheme,
                   icon: Icons.south,
-                  label: 'Из устройства',
+                  label: s.statFromDevice,
                   value: '${bridge.bytesFromDevice} Б',
                   color: Colors.green,
                 ),
@@ -188,7 +188,7 @@ class _TcpScreenState extends State<TcpScreen> {
                 _statCard(
                   scheme,
                   icon: Icons.north,
-                  label: 'В устройство',
+                  label: s.statToDevice,
                   value: '${bridge.bytesToDevice} Б',
                   color: Colors.blue,
                 ),
@@ -203,16 +203,17 @@ class _TcpScreenState extends State<TcpScreen> {
               children: [
                 Icon(Icons.receipt_long, size: 20, color: scheme.primary),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Лог',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                    s.logTitle,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w700),
                   ),
                 ),
                 TextButton.icon(
                   onPressed: bridge.clearLogs,
                   icon: const Icon(Icons.delete_sweep, size: 18),
-                  label: const Text('Очистить'),
+                  label: Text(s.btnClear),
                 ),
               ],
             ),
@@ -223,14 +224,13 @@ class _TcpScreenState extends State<TcpScreen> {
               padding: const EdgeInsets.all(24),
               child: Center(
                 child: Text(
-                  'Лог пуст. Запустите сервер и подключите устройство.',
+                  s.logEmpty,
                   style: TextStyle(color: scheme.outline, fontSize: 13),
                 ),
               ),
             )
           else
-            for (final log in bridge.logs.reversed)
-              _logTile(log),
+            for (final log in bridge.logs.reversed) _logTile(log),
         ],
       ),
     );

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 /// Тип транспортного интерфейса устройства.
-enum DeviceType { ble, usb }
+enum DeviceType { ble, usb, classic }
 
 /// Модель найденного устройства (BLE или USB).
 class DeviceInfo {
@@ -16,8 +16,11 @@ class DeviceInfo {
   /// Дополнительная информация (производитель, чип, RSSI и т.п.).
   final String? subtitle;
 
-  /// Уровень сигнала BLE (dBm), для USB — null.
+  /// Уровень сигнала BLE/Classic (dBm), для USB — null.
   final int? rssi;
+
+  /// Адрес Bluetooth устройства (для BLE — remoteId/MAC, для Classic — MAC).
+  final String? address;
 
   /// Сырые данные (для BLE — ScanResult, для USB — UsbDevice).
   final Object? raw;
@@ -28,6 +31,7 @@ class DeviceInfo {
     required this.name,
     this.subtitle,
     this.rssi,
+    this.address,
     this.raw,
   });
 

@@ -32,10 +32,13 @@
 | Компонент | Пакет / технология | Назначение |
 |---|---|---|
 | BLE | [`flutter_blue_plus`](https://pub.dev/packages/flutter_blue_plus) ^2.3.14 | сканирование, подключение, GATT |
+| Bluetooth Classic (SPP) | [`flutter_bluetooth_serial`](https://pub.dev/packages/flutter_bluetooth_serial) ^0.4.0 | RFCOMM: HC-05, HC-06 |
 | USB Serial | [`usb_serial`](https://pub.dev/packages/usb_serial) ^0.5.2 | UART по USB (FTDI, CDC, CH340…) |
 | Разрешения | [`permission_handler`](https://pub.dev/packages/permission_handler) ^11.x | runtime-разрешения Android |
 | Состояние | [`provider`](https://pub.dev/packages/provider) ^6.x | `ChangeNotifier` + зависимости |
 | Версия Android | [`device_info_plus`](https://pub.dev/packages/device_info_plus) ^13.x | определение API уровня |
+| Локализация | `flutter_localizations` (SDK) | RU/EN |
+| Хранение настроек | [`shared_preferences`](https://pub.dev/packages/shared_preferences) ^2.x | сохранение языка |
 | TCP-сервер | `dart:io` (`ServerSocket`) | локальный TCP на 8080 |
 
 Требования: Flutter ≥ 3.47, Dart ≥ 3.13, Android SDK 36, JDK 17,
@@ -47,21 +50,26 @@ minSdk 23, AGP 8.11.1, Gradle 8.14.
 
 ```
 lib/
-├── main.dart                       # точка входа, тема, Provider
+├── main.dart                       # точка входа, тема, локализация, Provider
+├── l10n/
+│   └── app_strings.dart            # строки RU/EN (AppStrings)
 ├── models/
-│   └── device_info.dart            # DeviceInfo, BridgeLog, DataPacket
+│   └── device_info.dart            # DeviceInfo (type, address), BridgeLog, DataPacket
 ├── services/
 │   ├── serial_port.dart            # абстракция SerialPort (единый интерфейс)
 │   ├── ble_service.dart            # BLE: скан, подключение, BLE Serial
+│   ├── bt_classic_service.dart     # Classic SPP: discovery, RFCOMM
 │   ├── usb_service.dart            # USB: список, подключение, ID чипов
 │   ├── tcp_server_service.dart     # TCP-сервер (dart:io)
+│   ├── settings_controller.dart    # язык (ChangeNotifier, shared_preferences)
 │   └── bridge_controller.dart      # мост serial ⇄ TCP (ChangeNotifier)
 ├── screens/
-│   ├── home_screen.dart            # нижняя навигация (2 вкладки)
+│   ├── home_screen.dart            # нижняя навигация (3 вкладки)
 │   ├── devices_screen.dart         # вкладка «Устройства»
-│   └── tcp_screen.dart             # вкладка «TCP сервер»
+│   ├── tcp_screen.dart             # вкладка «TCP сервер»
+│   └── settings_screen.dart        # вкладка «Настройки»
 └── widgets/
-    ├── device_card.dart            # карточка устройства
+    ├── device_card.dart            # карточка: тип, RSSI, адрес
     └── status_banner.dart          # статус подключения
 
 android/app/src/main/
@@ -120,7 +128,22 @@ final chunk = mtu - 3; // 3 байта — служебные BLE
 
 > Новые модули BLE Serial добавляются в `serialNameHints` и/или `knownServices`.
 
-### 5.2 `UsbService` — USB UART
+### 5.2 `BtClassicService` — Bluetooth Classic (SPP)
+
+- `FlutterBluetoothSerial.instance` — синглтон пакета
+  `flutter_bluetooth_serial` (RFCOMM);
+- `startDiscovery({filterSerialOnly})` — поиск устройств по имени + RSSI;
+- `connect(info)` — `BluetoothConnection.toAddress(address)` → `BtClassicSerialPort`;
+- `BtClassicSerialPort implements SerialPort` — тот же единый интерфейс моста.
+
+**Фильтр Serial для Classic** — `BtClassicService.isSerialCapable(BluetoothDevice)`:
+эвристика по имени (`hc-05`, `hc-06`, `uart`, `spp`, `jdy`, …), т.к.
+библиотека не предоставляет `BluetoothClass` устройства.
+
+> Для Classic-модуля с нестандартным именем при включённом фильтре
+> добавьте его имя в `_serialNameHints`.
+
+### 5.3 `UsbService` — USB UART
 
 - `listDevices()` — список подключённых USB-устройств через `UsbSerial.listDevices()`;
 - `connect(device, baudRate: 115200)` — открывает порт, задаёт параметры
@@ -143,7 +166,7 @@ final chunk = mtu - 3; // 3 байта — служебные BLE
 > Для нового чипа достаточно добавить ветку в `_chipName` и запись
 > в `device_filter.xml` (десятичные VID/PID: `0x1A86` = 6790 и т.д.).
 
-### 5.3 `TcpServerService` — TCP-сервер
+### 5.4 `TcpServerService` — TCP-сервер
 
 - `ServerSocket.bind(InternetAddress.anyIPv4, port)` — слушает все интерфейсы;
 - поддержка **нескольких клиентов** (`Set<Socket>`);
@@ -151,7 +174,7 @@ final chunk = mtu - 3; // 3 байта — служебные BLE
 - `onDataFromClients` — поток данных от клиентов (пишутся в устройство);
 - `onEvent` — события подключения/отключения клиентов.
 
-### 5.4 `BridgeController` — ядро моста
+### 5.5 `BridgeController` — ядро моста
 
 `ChangeNotifier`, связывает всё вместе:
 
@@ -225,6 +248,16 @@ adb install -r build/app/outputs/flutter-apk/app-release.apk
 - Android SDK 36 (`compileSdk 36`, `minSdk 23`, `targetSdk 35+`);
 - Gradle 8.14, AGP 8.11.1 — версии уже зафиксированы в `settings.gradle`
   и `gradle-wrapper.properties`.
+
+> **Патч `flutter_bluetooth_serial` 0.4.0 (обязателен при AGP 8+).**
+> Пакет опубликован 5 лет назад и несовместим с современным AGP.
+> Перед сборкой внесите правки в
+> `~/.pub-cache/hosted/pub.dev/flutter_bluetooth_serial-0.4.0/android/build.gradle`:
+> - замените `jcenter()` → `mavenCentral()` (оба места);
+> - добавьте в блок `android { }`: `namespace 'io.github.edufolly.flutterbluetoothserial'`;
+> - поднимите `compileSdkVersion 30` → `36`;
+> - удалите `buildToolsVersion '30.0.3'`.
+> Без этого сборка упадёт с ошибкой «Namespace not specified».
 
 ---
 

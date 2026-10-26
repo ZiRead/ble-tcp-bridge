@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../services/settings_controller.dart';
 import 'devices_screen.dart';
+import 'settings_screen.dart';
 import 'tcp_screen.dart';
 
-/// Главный экран с нижней навигацией: «Устройства» и «TCP сервер».
+/// Главный экран с нижней навигацией:
+/// «Устройства», «TCP сервер», «Настройки».
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -16,27 +20,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.watch<SettingsController>().s;
+
     return Scaffold(
       body: IndexedStack(
         index: _index,
         children: const [
           DevicesScreen(),
           TcpScreen(),
+          SettingsScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.devices_other_outlined),
-            selectedIcon: Icon(Icons.devices_other),
-            label: 'Устройства',
+            icon: const Icon(Icons.devices_other_outlined),
+            selectedIcon: const Icon(Icons.devices_other),
+            label: s.tabDevices,
           ),
           NavigationDestination(
-            icon: Icon(Icons.dns_outlined),
-            selectedIcon: Icon(Icons.dns),
-            label: 'TCP сервер',
+            icon: const Icon(Icons.dns_outlined),
+            selectedIcon: const Icon(Icons.dns),
+            label: s.tabTcp,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings),
+            label: s.tabSettings,
           ),
         ],
       ),

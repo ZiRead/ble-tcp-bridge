@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/device_info.dart';
 import 'ble_service.dart';
+import 'bt_classic_service.dart';
 import 'serial_port.dart';
 import 'tcp_server_service.dart';
 import 'usb_service.dart';
@@ -15,11 +16,13 @@ enum DeviceConnectionState { disconnected, connecting, connected }
 /// (BLE или USB) и TCP-сервером, пробрасывая данные между ними.
 class BridgeController extends ChangeNotifier {
   final BleService bleService;
+  final BtClassicService classicService;
   final UsbService usbService;
   final TcpServerService tcpServer;
 
   BridgeController({
     required this.bleService,
+    required this.classicService,
     required this.usbService,
     required this.tcpServer,
   }) {
@@ -88,10 +91,16 @@ class BridgeController extends ChangeNotifier {
 
     try {
       SerialPort port;
-      if (device.type == DeviceType.ble) {
-        port = await bleService.connect(device);
-      } else {
-        port = await usbService.connect(device);
+      switch (device.type) {
+        case DeviceType.ble:
+          port = await bleService.connect(device);
+          break;
+        case DeviceType.classic:
+          port = await classicService.connect(device);
+          break;
+        case DeviceType.usb:
+          port = await usbService.connect(device);
+          break;
       }
       _port = port;
       _connectionState = DeviceConnectionState.connected;

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/device_info.dart';
+import '../services/settings_controller.dart';
 
-/// Карточка найденного устройства (BLE или USB).
+/// Карточка найденного устройства (BLE, Classic или USB).
 class DeviceCard extends StatelessWidget {
   final DeviceInfo device;
   final bool isConnected;
@@ -20,11 +22,29 @@ class DeviceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final s = context.watch<SettingsController>().s;
+
     final isBle = device.type == DeviceType.ble;
+    final isClassic = device.type == DeviceType.classic;
 
     final Color accent = isConnected
         ? scheme.primary
-        : (isBle ? Colors.blue : Colors.teal);
+        : (isBle || isClassic ? Colors.blue : Colors.teal);
+
+    final defaultLabel = switch (device.type) {
+      DeviceType.ble => s.bleDeviceFallback,
+      DeviceType.classic => s.classicDeviceLabel,
+      DeviceType.usb => s.usbDeviceLabel,
+    };
+
+    // Метка типа устройства
+    final typeLabel = switch (device.type) {
+      DeviceType.ble => 'BLE',
+      DeviceType.classic => 'Classic',
+      DeviceType.usb => 'USB',
+    };
+
+    final hasAddress = device.address != null;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -34,7 +54,7 @@ class DeviceCard extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: accent.withValues(alpha: 0.15),
           child: Icon(
-            isBle ? Icons.bluetooth : Icons.usb,
+            isBle || isClassic ? Icons.bluetooth : Icons.usb,
             color: accent,
           ),
         ),
@@ -44,10 +64,28 @@ class DeviceCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(
-          device.subtitle ?? (isBle ? 'BLE устройство' : 'USB устройство'),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        isThreeLine: hasAddress,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$typeLabel • ${device.subtitle ?? defaultLabel}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (hasAddress)
+              Text(
+                device.address!,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  color: scheme.outline,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
         ),
         trailing: isConnecting
             ? const SizedBox(
