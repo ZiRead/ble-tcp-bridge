@@ -82,8 +82,8 @@ class AppStrings {
       ? 'Нет разрешения на подключение BLE'
       : 'No Bluetooth connect permission';
   String get errorLocation => isRu
-      ? 'Для BLE-сканирования нужно разрешение на местоположение (Android 11 и ниже)'
-      : 'Location permission is required for BLE scanning (Android 11 and lower)';
+      ? 'Для поиска Bluetooth (Classic) нужно разрешение на местоположение'
+      : 'Location permission is required for Bluetooth (Classic) discovery';
   String get errorUsbList =>
       isRu ? 'Ошибка чтения USB устройств' : 'Failed to list USB devices';
   String connectFailed(String name) => isRu

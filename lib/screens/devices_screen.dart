@@ -113,7 +113,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
 
   // ================= Разрешения =================
 
-  Future<bool> _ensureBlePermissions() async {
+  Future<bool> _ensureBlePermissions({bool classicDiscovery = false}) async {
     final bridge = context.read<BridgeController>();
     final s = context.read<SettingsController>().s;
 
@@ -137,9 +137,13 @@ class _DevicesScreenState extends State<DevicesScreen> {
       return false;
     }
 
-    // Разрешение на местоположение требуется ТОЛЬКО для Android ≤ 11 (API ≤ 30).
+    // Разрешение на местоположение требуется:
+    //   - всегда для поиска Classic-устройств (плагин flutter_bluetooth_serial
+    //     проверяет ACCESS_COARSE/FINE_LOCATION на всех версиях Android);
+    //   - на Android ≤ 11 (API ≤ 30) для BLE-сканирования.
     final androidInfo = await DeviceInfoPlugin().androidInfo;
-    if (androidInfo.version.sdkInt <= 30) {
+    final needLocation = classicDiscovery || androidInfo.version.sdkInt <= 30;
+    if (needLocation) {
       final locStatus = await Permission.location.status;
       if (!locStatus.isGranted) {
         final loc = await Permission.location.request();
@@ -234,7 +238,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
       _btDevices.clear();
     });
 
-    if (!await _ensureBlePermissions()) {
+    if (!await _ensureBlePermissions(classicDiscovery: true)) {
       setState(() {
         _bleScanning = false;
         _classicSearching = false;

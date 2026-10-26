@@ -5,6 +5,18 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 проект придерживается [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [1.1.1] — 2026-10-27
+
+### Исправлено
+- **Поиск Bluetooth Classic на Android 12+**: устранена ошибка
+  `PlatformException(no_permissions, discovering other devices requires location
+  access permission, null, null)` при сканировании. Для поиска Classic-устройств
+  (плагин `flutter_bluetooth_serial`) теперь запрашивается разрешение на
+  местоположение на всех версиях Android; разрешения `ACCESS_FINE_LOCATION` /
+  `ACCESS_COARSE_LOCATION` объявлены в манифесте без `maxSdkVersion`.
+  BLE-сканирование по-прежнему использует `BLUETOOTH_SCAN` с флагом
+  `neverForLocation` и не требует местоположения на Android 12+.
+
 ## [1.1.0] — 2026-10-26
 
 ### Добавлено
