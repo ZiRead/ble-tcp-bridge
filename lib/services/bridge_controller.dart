@@ -89,7 +89,8 @@ class BridgeController extends ChangeNotifier {
     await disconnect();
     _connectionState = DeviceConnectionState.connecting;
     _connectedDevice = device;
-    _addLog('Подключение к "${device.name}"...');
+    _addLog(settings?.s.logConnectingToDevice(device.name) ??
+        'Подключение к "${device.name}"...');
     notifyListeners();
 
     try {
@@ -110,7 +111,7 @@ class BridgeController extends ChangeNotifier {
       }
       _port = port;
       _connectionState = DeviceConnectionState.connected;
-      _addLog('Подключено: ${port.label}');
+      _addLog(settings?.s.logConnected(port.label) ?? 'Подключено: ${port.label}');
 
       // Данные от устройства -> всем TCP-клиентам
       _portSub = port.inputStream.listen((data) {
@@ -125,7 +126,7 @@ class BridgeController extends ChangeNotifier {
     } catch (e) {
       _connectionState = DeviceConnectionState.disconnected;
       _connectedDevice = null;
-      _addLog('Ошибка подключения: $e', isError: true);
+      _addLog(settings?.s.logConnectError(e) ?? 'Ошибка подключения: $e', isError: true);
       notifyListeners();
       return false;
     }
@@ -138,7 +139,7 @@ class BridgeController extends ChangeNotifier {
     await _port?.close();
     _port = null;
     if (_connectionState != DeviceConnectionState.disconnected) {
-      _addLog('Устройство отключено');
+      _addLog(settings?.s.logDisconnected ?? 'Устройство отключено');
     }
     _connectionState = DeviceConnectionState.disconnected;
     _connectedDevice = null;

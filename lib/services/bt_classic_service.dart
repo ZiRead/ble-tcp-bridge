@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 import '../models/device_info.dart';
+import 'settings_controller.dart';
 import 'serial_port.dart';
 
 /// Реализация [SerialPort] поверх Bluetooth Classic (SPP, RFCOMM).
@@ -40,6 +41,8 @@ class BtClassicSerialPort implements SerialPort {
 
 /// Сервис для работы с Bluetooth Classic (SPP): сканирование и подключение.
 class BtClassicService {
+  final SettingsController? settings;
+  BtClassicService({this.settings});
   final FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
 
   final List<DeviceInfo> _devices = [];
@@ -124,6 +127,7 @@ class BtClassicService {
           type: DeviceType.classic,
           id: dev.address,
           name: name,
+          serialCapable: isSerialCapable(dev),
           subtitle: 'RSSI: ${result.rssi} dBm',
           address: dev.address,
           rssi: result.rssi,
@@ -137,12 +141,12 @@ class BtClassicService {
           _deviceStream.add(info);
         }
       }, onError: (e) {
-        _errorStream.add('Ошибка поиска: $e');
+        _errorStream.add(settings?.s.classicSearchError(e) ?? 'Ошибка поиска: $e');
       }, onDone: () {
         _discovering = false;
       });
     } catch (e) {
-      _errorStream.add('Не удалось начать поиск: $e');
+      _errorStream.add(settings?.s.classicStartError(e) ?? 'Не удалось начать поиск: $e');
       _discovering = false;
       rethrow;
     }

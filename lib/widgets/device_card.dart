@@ -23,9 +23,12 @@ class DeviceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final s = context.watch<SettingsController>().s;
+    final settings = context.watch<SettingsController>();
 
     final isBle = device.type == DeviceType.ble;
     final isClassic = device.type == DeviceType.classic;
+
+    final disabled = !device.serialCapable && settings.disableNonSerialDevices;
 
     final Color accent = isConnected
         ? scheme.primary
@@ -50,7 +53,8 @@ class DeviceCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        onTap: onTap,
+        onTap: disabled ? null : onTap,
+        enabled: !disabled,
         leading: CircleAvatar(
           backgroundColor: accent.withValues(alpha: 0.15),
           child: Icon(

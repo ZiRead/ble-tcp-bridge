@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.3] — 2026-10-27
+
+### Added
+- **Localized log messages**: bridge, TCP server, BLE, Bluetooth Classic and USB
+  messages are now shown in the selected UI language (RU/EN).
+- **Non-Serial devices**: shown as disabled (cannot be connected) when the new
+  setting is enabled.
+- **Setting to disable connection to non-Serial devices** (on the "Settings" tab).
+
+### Changed
+- **TCP server address**: displays all local IP addresses of the smartphone
+  (one per line), with `localhost` always last.
+- **Settings UI**: USB baud rate and the non-Serial toggle are placed before
+  the "About" button.
+
+### Fixed
+- **Bluetooth device names**: name is taken from the device (trimmed); address is
+  used as fallback. Plugin patched to use `EXTRA_NAME`.
+- **Serial-only filter description**: updated to mention both BLE Serial and
+  Bluetooth Classic.
+
 ## [1.2.2] — 2026-10-27
 
 ### Fixed

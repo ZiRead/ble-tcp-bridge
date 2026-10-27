@@ -125,6 +125,8 @@ class AppStrings {
 
   // ===== Скорость (baud rate) =====
   String get settingsUsbBaudRate => isRu ? 'Скорость USB (baud rate)' : 'USB baud rate';
+  String get settingsDisableNonSerial =>
+      isRu ? 'Отключать подключение к не-Serial' : 'Disable connecting to non-Serial';
 
   // ===== О приложении =====
   String get settingsAbout => isRu ? 'О приложении' : 'About';
@@ -139,5 +141,42 @@ class AppStrings {
   String get aboutGithub => isRu ? 'Репозиторий на GitHub' : 'GitHub repository';
   String get aboutLicense => isRu ? 'Лицензия: MIT' : 'License: MIT';
   String get aboutVersion => isRu ? 'Версия' : 'Version';
+  String get logDisconnected => isRu ? 'Устройство отключено' : 'Device disconnected';
+  String logConnectingToDevice(String name) =>
+      isRu ? 'Подключение к "$name"...' : 'Connecting to "$name"...';
+  String logConnected(String label) =>
+      isRu ? 'Подключено: $label' : 'Connected: $label';
+  String logConnectError(Object e) =>
+      isRu ? 'Ошибка подключения: $e' : 'Connection error: $e';
+
+  // ===== TCP сервер (лог) =====
+  String tcpServerStarted(int port) =>
+      isRu ? 'Сервер запущен на порту $port' : 'Server started on port $port';
+  String tcpClientConnected(String address, int total) => isRu
+      ? 'Клиент подключён: $address (всего: $total)'
+      : 'Client connected: $address (total: $total)';
+  String tcpServerError(Object e) =>
+      isRu ? 'Ошибка запуска сервера: $e' : 'Server start error: $e';
+  String get tcpServerStopped => isRu ? 'Сервер остановлен' : 'Server stopped';
+  String tcpClientDisconnected(String address, int total) => isRu
+      ? 'Клиент отключён: $address (всего: $total)'
+      : 'Client disconnected: $address (total: $total)';
+
+  // ===== BLE / Classic / USB (ошибки) =====
+  String get bleNotSupported =>
+      isRu ? 'Bluetooth не поддерживается этим устройством' : 'Bluetooth is not supported by this device';
+  String bleInitError(Object e) =>
+      isRu ? 'Ошибка инициализации BLE: $e' : 'BLE initialization error: $e';
+  String bleScanError(Object e) =>
+      isRu ? 'Ошибка сканирования BLE: $e' : 'BLE scan error: $e';
+  String classicSearchError(Object e) =>
+      isRu ? 'Ошибка поиска: $e' : 'Search error: $e';
+  String classicStartError(Object e) =>
+      isRu ? 'Не удалось начать поиск: $e' : 'Failed to start discovery: $e';
+  String get usbPortCreateError =>
+      isRu ? 'Не удалось создать порт для USB устройства' : 'Failed to create port for USB device';
+  String get usbPortOpenError => isRu
+      ? 'Не удалось открыть USB порт. Возможно, требуется разрешение на доступ к USB'
+      : 'Failed to open USB port. USB access permission may be required';
   String get aboutClose => isRu ? 'Закрыть' : 'Close';
 }

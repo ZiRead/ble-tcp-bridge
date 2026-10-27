@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../models/device_info.dart';
+import 'settings_controller.dart';
 import 'serial_port.dart';
 
 /// UUID сервисов BLE Serial, которые поддерживает приложение.
@@ -110,6 +111,8 @@ class BleSerialPort implements SerialPort {
 
 /// Сервис для работы с BLE: сканирование, подключение, поиск BLE Serial.
 class BleService {
+  final SettingsController? settings;
+  BleService({this.settings});
   final List<DeviceInfo> _devices = [];
   List<DeviceInfo> get devices => List.unmodifiable(_devices);
 
@@ -130,7 +133,7 @@ class BleService {
   Future<bool> ensureReady() async {
     try {
       if (await FlutterBluePlus.isSupported == false) {
-        _errorStream.add('Bluetooth не поддерживается этим устройством');
+        _errorStream.add(settings?.s.bleNotSupported ?? 'Bluetooth не поддерживается этим устройством');
         return false;
       }
       // Включаем Bluetooth, если выключен (Android)
@@ -139,7 +142,7 @@ class BleService {
       }
       return true;
     } catch (e) {
-      _errorStream.add('Ошибка инициализации BLE: $e');
+      _errorStream.add(settings?.s.bleInitError(e) ?? 'Ошибка инициализации BLE: $e');
       return false;
     }
   }
@@ -179,6 +182,7 @@ class BleService {
             type: DeviceType.ble,
             id: r.device.remoteId.str,
             name: name,
+            serialCapable: BleSerialUuids.isSerialCapable(r),
             subtitle: 'RSSI: ${r.rssi} dBm',
             address: r.device.remoteId.str,
             rssi: r.rssi,
@@ -194,7 +198,7 @@ class BleService {
         }
       });
     } catch (e) {
-      _errorStream.add('Ошибка сканирования BLE: $e');
+      _errorStream.add(settings?.s.bleScanError(e) ?? 'Ошибка сканирования BLE: $e');
       _scanning = false;
       rethrow;
     }

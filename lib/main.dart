@@ -14,10 +14,10 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   final settings = SettingsController();
-  final bleService = BleService();
-  final classicService = BtClassicService();
-  final usbService = UsbService();
-  final tcpServer = TcpServerService();
+  final bleService = BleService(settings: settings);
+  final classicService = BtClassicService(settings: settings);
+  final usbService = UsbService(settings: settings);
+  final tcpServer = TcpServerService(settings: settings);
   final bridge = BridgeController(
     bleService: bleService,
     classicService: classicService,

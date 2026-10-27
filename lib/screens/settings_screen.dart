@@ -163,6 +163,12 @@ class SettingsScreen extends StatelessWidget {
               if (v != null) settings.setUsbBaudRate(v);
             },
           ),
+          const SizedBox(height: 12),
+          SwitchListTile(
+            title: Text(s.settingsDisableNonSerial),
+            value: settings.disableNonSerialDevices,
+            onChanged: (v) => settings.setDisableNonSerialDevices(v),
+          ),
           const SizedBox(height: 24),
           ListTile(
             leading: const Icon(Icons.info_outline),

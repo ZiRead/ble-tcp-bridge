@@ -7,6 +7,7 @@ import '../l10n/app_strings.dart';
 class SettingsController extends ChangeNotifier {
   static const _prefKey = 'app_language';
   static const _prefUsbBaud = 'usb_baud_rate';
+  static const _prefDisableNonSerial = 'disable_non_serial';
 
   Locale _locale = const Locale('ru');
   Locale get locale => _locale;
@@ -20,6 +21,9 @@ class SettingsController extends ChangeNotifier {
   int _usbBaudRate = 115200;
   int get usbBaudRate => _usbBaudRate;
 
+  bool _disableNonSerialDevices = true;
+  bool get disableNonSerialDevices => _disableNonSerialDevices;
+
   /// Загрузить сохранённые настройки из shared_preferences.
   Future<void> load() async {
     try {
@@ -27,6 +31,8 @@ class SettingsController extends ChangeNotifier {
       final code = prefs.getString(_prefKey) ?? 'ru';
       _locale = (code == 'en') ? const Locale('en') : const Locale('ru');
       _usbBaudRate = prefs.getInt(_prefUsbBaud) ?? 115200;
+      _disableNonSerialDevices =
+          prefs.getBool(_prefDisableNonSerial) ?? true;
       notifyListeners();
     } catch (_) {}
   }
@@ -48,6 +54,16 @@ class SettingsController extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_prefUsbBaud, baud);
+    } catch (_) {}
+  }
+
+  /// Включить/выключить блокировку подключения к не-Serial устройствам.
+  Future<void> setDisableNonSerialDevices(bool value) async {
+    _disableNonSerialDevices = value;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefDisableNonSerial, value);
     } catch (_) {}
   }
 }

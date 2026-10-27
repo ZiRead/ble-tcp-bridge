@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:usb_serial/usb_serial.dart';
 
 import '../models/device_info.dart';
+import 'settings_controller.dart';
 import 'serial_port.dart';
 
 /// Реализация [SerialPort] поверх USB UART (FTDI, CDC, CH340, CP210x и т.д.).
@@ -35,6 +36,8 @@ class UsbSerialPort implements SerialPort {
 
 /// Сервис для работы с USB serial устройствами.
 class UsbService {
+  final SettingsController? settings;
+  UsbService({this.settings});
   /// Список подключённых USB устройств.
   Future<List<DeviceInfo>> listDevices() async {
     final devices = await UsbSerial.listDevices();
@@ -58,13 +61,15 @@ class UsbService {
     final device = info.raw as UsbDevice;
     final port = await device.create();
     if (port == null) {
-      throw Exception('Не удалось создать порт для USB устройства');
+      throw Exception(settings?.s.usbPortCreateError ??
+          'Не удалось создать порт для USB устройства');
     }
 
     final opened = await port.open();
     if (!opened) {
-      throw Exception('Не удалось открыть USB порт. '
-          'Возможно, требуется разрешение на доступ к USB');
+      throw Exception(settings?.s.usbPortOpenError ??
+          'Не удалось открыть USB порт. '
+              'Возможно, требуется разрешение на доступ к USB');
     }
 
     await port.setDTR(true);

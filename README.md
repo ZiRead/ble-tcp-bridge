@@ -39,6 +39,7 @@ and a **local TCP server** on port **8080**.
 ### ⚙️ "Settings" tab
 - Interface language selection: **Russian / English** (persisted between launches).
 - **USB baud rate** selection (9600–115200), applied when connecting a USB device.
+- **Disable connecting to non-Serial devices** toggle.
 - **"About"** button with app info, GitHub link and license.
 
 ### 🌐 "TCP server" tab

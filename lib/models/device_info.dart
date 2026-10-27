@@ -13,6 +13,9 @@ class DeviceInfo {
   /// Отображаемое имя устройства.
   final String name;
 
+  /// Признак того, что устройство пригодно для serial-обмена.
+  final bool serialCapable;
+
   /// Дополнительная информация (производитель, чип, RSSI и т.п.).
   final String? subtitle;
 
@@ -29,6 +32,7 @@ class DeviceInfo {
     required this.type,
     required this.id,
     required this.name,
+    this.serialCapable = true,
     this.subtitle,
     this.rssi,
     this.address,
@@ -37,6 +41,7 @@ class DeviceInfo {
 
   DeviceInfo copyWith({
     String? name,
+    bool? serialCapable,
     String? subtitle,
     int? rssi,
   }) {
@@ -44,6 +49,7 @@ class DeviceInfo {
       type: type,
       id: id,
       name: name ?? this.name,
+      serialCapable: serialCapable ?? this.serialCapable,
       subtitle: subtitle ?? this.subtitle,
       rssi: rssi ?? this.rssi,
       raw: raw,
