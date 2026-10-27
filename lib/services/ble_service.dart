@@ -170,11 +170,11 @@ class BleService {
           if (filterSerialOnly && !BleSerialUuids.isSerialCapable(r)) {
             continue; // отсеиваем неподходящие устройства
           }
-          final name = r.device.platformName.isNotEmpty
-              ? r.device.platformName
-              : (r.advertisementData.advName.isNotEmpty
-                  ? r.advertisementData.advName
-                  : 'BLE устройство');
+          final name = r.device.platformName.trim().isNotEmpty
+              ? r.device.platformName.trim()
+              : (r.advertisementData.advName.trim().isNotEmpty
+                  ? r.advertisementData.advName.trim()
+                  : r.device.remoteId.str);
           final info = DeviceInfo(
             type: DeviceType.ble,
             id: r.device.remoteId.str,

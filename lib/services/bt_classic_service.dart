@@ -119,7 +119,7 @@ class BtClassicService {
           return; // отсеиваем неподходящие Classic-устройства
         }
         final name =
-            (dev.name ?? '').isNotEmpty ? dev.name! : 'HC-05 / Classic';
+            (dev.name ?? '').trim().isNotEmpty ? (dev.name ?? '').trim() : (dev.address);
         final info = DeviceInfo(
           type: DeviceType.classic,
           id: dev.address,

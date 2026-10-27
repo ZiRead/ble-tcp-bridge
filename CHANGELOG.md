@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-10-27
+
+### Added
+- **"About" button** on the "Settings" tab: a dialog with app description,
+  a link to the GitHub repository and license information (MIT).
+  The dialog is not full-screen; it can be closed with a button/cross or by
+  tapping outside.
+
+### Changed
+- "Serial devices only" filter: the description shown when the filter is active
+  now covers both BLE Serial and Bluetooth Classic (HC-05/HC-06, etc.).
+
+### Fixed
+- **Bluetooth device names display**: the name is taken from the device itself
+  (trimmed), and its address (MAC/remoteId) is used when no name is available.
+  The `flutter_bluetooth_serial` plugin is patched to use `EXTRA_NAME` from the
+  discovery intent.
+- Documentation translated into English.
+
 ## [1.1.1] — 2026-10-27
 
 ### Fixed
