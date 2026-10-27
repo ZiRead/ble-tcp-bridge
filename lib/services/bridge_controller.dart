@@ -6,6 +6,7 @@ import '../models/device_info.dart';
 import 'ble_service.dart';
 import 'bt_classic_service.dart';
 import 'serial_port.dart';
+import 'settings_controller.dart';
 import 'tcp_server_service.dart';
 import 'usb_service.dart';
 
@@ -19,12 +20,14 @@ class BridgeController extends ChangeNotifier {
   final BtClassicService classicService;
   final UsbService usbService;
   final TcpServerService tcpServer;
+  final SettingsController? settings;
 
   BridgeController({
     required this.bleService,
     required this.classicService,
     required this.usbService,
     required this.tcpServer,
+    this.settings,
   }) {
     _init();
   }
@@ -99,7 +102,10 @@ class BridgeController extends ChangeNotifier {
           port = await classicService.connect(device);
           break;
         case DeviceType.usb:
-          port = await usbService.connect(device);
+          port = await usbService.connect(
+            device,
+            baudRate: settings?.usbBaudRate ?? 115200,
+          );
           break;
       }
       _port = port;

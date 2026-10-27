@@ -13,6 +13,7 @@ import 'services/usb_service.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final settings = SettingsController();
   final bleService = BleService();
   final classicService = BtClassicService();
   final usbService = UsbService();
@@ -22,8 +23,8 @@ void main() {
     classicService: classicService,
     usbService: usbService,
     tcpServer: tcpServer,
+    settings: settings,
   );
-  final settings = SettingsController();
 
   runApp(BleTcpBridgeApp(bridge: bridge, settings: settings));
 }

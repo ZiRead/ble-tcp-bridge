@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] — 2026-10-27
+
+### Added
+- **USB baud rate setting**: selectable baud rate (9600, 19200, 38400, 57600,
+  115200) on the "Settings" tab, applied when connecting a USB device.
+
+### Changed
+- Removed the non-functional Bluetooth baud rate setting (Bluetooth Classic/BLE
+  do not use a configurable baud rate).
+
 ## [1.2.0] — 2026-10-27
 
 ### Added

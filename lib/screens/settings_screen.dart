@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -12,11 +13,15 @@ class SettingsScreen extends StatelessWidget {
   static final Uri _githubUri =
       Uri.parse('https://github.com/ZiRead/ble-tcp-bridge');
 
+  static const List<int> _baudRates = [9600, 19200, 38400, 57600, 115200];
+
   Future<void> _openGithub() async {
     await launchUrl(_githubUri, mode: LaunchMode.externalApplication);
   }
 
-  void _showAboutDialog(BuildContext context, AppStrings s) {
+  Future<void> _showAboutDialog(BuildContext context, AppStrings s) async {
+    final info = await PackageInfo.fromPlatform();
+    if (!context.mounted) return;
     showDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -56,6 +61,11 @@ class SettingsScreen extends StatelessWidget {
                   Text(
                     s.aboutDescription,
                     style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${s.aboutVersion}: ${info.version}+${info.buildNumber}',
+                    style: const TextStyle(fontSize: 13),
                   ),
                   const SizedBox(height: 16),
                   TextButton.icon(
@@ -134,6 +144,24 @@ class SettingsScreen extends StatelessWidget {
               fontSize: 12.5,
               color: Theme.of(context).colorScheme.outline,
             ),
+          ),
+          const SizedBox(height: 24),
+          DropdownButtonFormField<int>(
+            // ignore: deprecated_member_use
+            value: settings.usbBaudRate,
+            decoration: InputDecoration(
+              labelText: s.settingsUsbBaudRate,
+              border: const OutlineInputBorder(),
+            ),
+            items: _baudRates
+                .map((b) => DropdownMenuItem<int>(
+                      value: b,
+                      child: Text('$b'),
+                    ))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) settings.setUsbBaudRate(v);
+            },
           ),
           const SizedBox(height: 24),
           ListTile(

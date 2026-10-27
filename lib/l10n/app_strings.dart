@@ -123,6 +123,9 @@ class AppStrings {
       ? 'Изменение языка применяется сразу'
       : 'Language change applies immediately';
 
+  // ===== Скорость (baud rate) =====
+  String get settingsUsbBaudRate => isRu ? 'Скорость USB (baud rate)' : 'USB baud rate';
+
   // ===== О приложении =====
   String get settingsAbout => isRu ? 'О приложении' : 'About';
   String get aboutTitle => isRu ? 'О приложении' : 'About';
@@ -135,5 +138,6 @@ class AppStrings {
         'Forwards data between the device and TCP clients in both directions.';
   String get aboutGithub => isRu ? 'Репозиторий на GitHub' : 'GitHub repository';
   String get aboutLicense => isRu ? 'Лицензия: MIT' : 'License: MIT';
+  String get aboutVersion => isRu ? 'Версия' : 'Version';
   String get aboutClose => isRu ? 'Закрыть' : 'Close';
 }

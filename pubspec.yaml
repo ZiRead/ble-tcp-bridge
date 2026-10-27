@@ -1,7 +1,7 @@
 name: ble_tcp_bridge
 description: "BLE / USB to TCP bridge for Android. Bridges serial data from BLE Serial or USB UART devices to a local TCP server on port 8080."
 publish_to: "none"
-version: 1.2.0+4
+version: 1.2.1+5
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -32,6 +32,9 @@ dependencies:
 
   # Сохранение настроек (язык)
   shared_preferences: ^2.5.6
+
+  # Информация о приложении (версия)
+  package_info_plus: ^10.2.2
 
   # Открытие внешних ссылок (GitHub и др.)
   url_launcher: ^6.3.0
