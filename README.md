@@ -104,7 +104,6 @@ APK will appear in `build/app/outputs/flutter-apk/`.
    # example: reading data from a serial device
    nc <smartphone-IP> 8080
    ```
-   The smartphone IP can be found in Wi-Fi settings.
 
 ## Project structure
 
