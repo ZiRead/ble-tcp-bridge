@@ -21,7 +21,7 @@ class _TcpScreenState extends State<TcpScreen> {
   final TextEditingController _portController =
       TextEditingController(text: '8080');
 
-  String? _localIp;
+  List<String> _localIps = <String>[];
 
   @override
   void initState() {
@@ -35,50 +35,16 @@ class _TcpScreenState extends State<TcpScreen> {
         type: InternetAddressType.IPv4,
         includeLoopback: false,
       );
-      String? wifiIp;
-      String? anyIp;
+      final ips = <String>[];
       for (final iface in interfaces) {
-        final name = iface.name.toLowerCase();
         for (final addr in iface.addresses) {
           if (addr.isLoopback) continue;
           final ip = addr.address;
-          // Предпочитаем Wi-Fi / локальную сеть
-          if (name.contains('wlan') ||
-              name.contains('wi-fi') ||
-              name.contains('wifi')) {
-            wifiIp ??= ip;
-          }
-          // Локальные диапазоны (исключаем VPN вроде 26.x)
-          if (ip.startsWith('192.168.') ||
-              ip.startsWith('10.') ||
-              _isPrivate172(ip)) {
-            anyIp ??= ip;
-          }
+          if (!ips.contains(ip)) ips.add(ip);
         }
       }
-      final chosen = wifiIp ?? anyIp;
-      if (chosen != null && mounted) {
-        setState(() => _localIp = chosen);
-      } else if (interfaces.isNotEmpty) {
-        // fallback
-        for (final iface in interfaces) {
-          for (final addr in iface.addresses) {
-            if (!addr.isLoopback) {
-              if (mounted) setState(() => _localIp = addr.address);
-              return;
-            }
-          }
-        }
-      }
+      if (mounted) setState(() => _localIps = ips);
     } catch (_) {}
-  }
-
-  bool _isPrivate172(String ip) {
-    final parts = ip.split('.');
-    if (parts.length != 4) return false;
-    final second = int.tryParse(parts[1]);
-    if (second == null) return false;
-    return parts[0] == '172' && second >= 16 && second <= 31;
   }
 
   @override
@@ -192,15 +158,25 @@ class _TcpScreenState extends State<TcpScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              running
-                                  ? '${_localIp ?? '0.0.0.0'}:${bridge.tcpPort}'
-                                  : '—',
-                              style: const TextStyle(
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                            if (running && _localIps.isNotEmpty)
+                              for (final ip in _localIps)
+                                Text(
+                                  '$ip:${bridge.tcpPort}',
+                                  style: const TextStyle(
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                )
+                            else if (running)
+                              Text(
+                                '0.0.0.0:${bridge.tcpPort}',
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            else
+                              const Text('—'),
                             if (running)
                               Text(
                                 'localhost:${bridge.tcpPort}',
