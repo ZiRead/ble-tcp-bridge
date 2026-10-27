@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +20,66 @@ class TcpScreen extends StatefulWidget {
 class _TcpScreenState extends State<TcpScreen> {
   final TextEditingController _portController =
       TextEditingController(text: '8080');
+
+  String? _localIp;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocalIp();
+  }
+
+  Future<void> _loadLocalIp() async {
+    try {
+      final interfaces = await NetworkInterface.list(
+        type: InternetAddressType.IPv4,
+        includeLoopback: false,
+      );
+      String? wifiIp;
+      String? anyIp;
+      for (final iface in interfaces) {
+        final name = iface.name.toLowerCase();
+        for (final addr in iface.addresses) {
+          if (addr.isLoopback) continue;
+          final ip = addr.address;
+          // Предпочитаем Wi-Fi / локальную сеть
+          if (name.contains('wlan') ||
+              name.contains('wi-fi') ||
+              name.contains('wifi')) {
+            wifiIp ??= ip;
+          }
+          // Локальные диапазоны (исключаем VPN вроде 26.x)
+          if (ip.startsWith('192.168.') ||
+              ip.startsWith('10.') ||
+              _isPrivate172(ip)) {
+            anyIp ??= ip;
+          }
+        }
+      }
+      final chosen = wifiIp ?? anyIp;
+      if (chosen != null && mounted) {
+        setState(() => _localIp = chosen);
+      } else if (interfaces.isNotEmpty) {
+        // fallback
+        for (final iface in interfaces) {
+          for (final addr in iface.addresses) {
+            if (!addr.isLoopback) {
+              if (mounted) setState(() => _localIp = addr.address);
+              return;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  bool _isPrivate172(String ip) {
+    final parts = ip.split('.');
+    if (parts.length != 4) return false;
+    final second = int.tryParse(parts[1]);
+    if (second == null) return false;
+    return parts[0] == '172' && second >= 16 && second <= 31;
+  }
 
   @override
   void dispose() {
@@ -127,12 +189,28 @@ class _TcpScreenState extends State<TcpScreen> {
                       Text(s.labelAddress),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          running ? '0.0.0.0:$bridge.tcpPort' : '—',
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              running
+                                  ? '${_localIp ?? '0.0.0.0'}:${bridge.tcpPort}'
+                                  : '—',
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (running)
+                              Text(
+                                'localhost:${bridge.tcpPort}',
+                                style: TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 12,
+                                  color: scheme.outline,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ],
