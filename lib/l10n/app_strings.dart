@@ -44,10 +44,11 @@ class AppStrings {
   String get emptyBleFiltered => isRu
       ? 'Нажмите «Сканировать».\n'
           'Фильтр «Только Serial» активен — будут показаны лишь '
-          'устройства BLE Serial (HM-10, HC-08, Nordic UART и т.п.).'
+          'serial-устройства (BLE Serial и Classic: HM-10, HC-08, HC-05/06, '
+          'Nordic UART и т.п.).'
       : 'Press "Scan".\n'
-          '"Serial-only" filter is active — only BLE Serial devices '
-          'will be shown (HM-10, HC-08, Nordic UART, etc.).';
+          '"Serial-only" filter is active — only serial devices will be shown '
+          '(BLE Serial and Classic: HM-10, HC-08, HC-05/06, Nordic UART, etc.).';
   String get emptyUsb => isRu
       ? 'Подключите USB UART адаптер (CH340, CP2102, FTDI, '
           'PL2303 и др.) через OTG-кабель.'
@@ -121,4 +122,18 @@ class AppStrings {
   String get settingsHint => isRu
       ? 'Изменение языка применяется сразу'
       : 'Language change applies immediately';
+
+  // ===== О приложении =====
+  String get settingsAbout => isRu ? 'О приложении' : 'About';
+  String get aboutTitle => isRu ? 'О приложении' : 'About';
+  String get aboutDescription => isRu
+      ? 'BLE / USB → TCP Bridge — мост между serial-устройствами '
+        '(BLE Serial, Bluetooth Classic SPP, USB UART) и локальным TCP-сервером. '
+        'Позволяет передавать данные от устройства к TCP-клиентам и обратно.'
+      : 'BLE / USB → TCP Bridge — a bridge between serial devices '
+        '(BLE Serial, Bluetooth Classic SPP, USB UART) and a local TCP server. '
+        'Forwards data between the device and TCP clients in both directions.';
+  String get aboutGithub => isRu ? 'Репозиторий на GitHub' : 'GitHub repository';
+  String get aboutLicense => isRu ? 'Лицензия: MIT' : 'License: MIT';
+  String get aboutClose => isRu ? 'Закрыть' : 'Close';
 }
