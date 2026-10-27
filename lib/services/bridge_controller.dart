@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../models/device_info.dart';
 import 'ble_service.dart';
 import 'bt_classic_service.dart';
+import 'foreground_service.dart';
 import 'serial_port.dart';
 import 'settings_controller.dart';
 import 'tcp_server_service.dart';
@@ -113,6 +114,19 @@ class BridgeController extends ChangeNotifier {
       _connectionState = DeviceConnectionState.connected;
       _addLog(settings?.s.logConnected(port.label) ?? 'Подключено: ${port.label}');
 
+      if (_tcpRunning) {
+        TcpForegroundService.update(
+          title: settings?.s.serverRunning ?? 'TCP server running',
+          text: 'Port $tcpPort • Clients: $tcpClients',
+          bigText:
+              '${settings?.s.serverRunning ?? 'TCP server running'}\n'
+              'Port: $tcpPort\n'
+              'Clients: $tcpClients\n'
+              'Device: ${device.name}\n'
+              'Address: ${device.address ?? device.id}',
+        );
+      }
+
       // Данные от устройства -> всем TCP-клиентам
       _portSub = port.inputStream.listen((data) {
         _bytesFromDevice += data.length;
@@ -143,6 +157,17 @@ class BridgeController extends ChangeNotifier {
     }
     _connectionState = DeviceConnectionState.disconnected;
     _connectedDevice = null;
+    if (_tcpRunning) {
+      TcpForegroundService.update(
+        title: settings?.s.serverRunning ?? 'TCP server running',
+        text: 'Port $tcpPort • Clients: $tcpClients',
+        bigText:
+            '${settings?.s.serverRunning ?? 'TCP server running'}\n'
+            'Port: $tcpPort\n'
+            'Clients: $tcpClients\n'
+            'Device: none',
+      );
+    }
     notifyListeners();
   }
 
@@ -153,6 +178,19 @@ class BridgeController extends ChangeNotifier {
       await tcpServer.start(port: port);
       _tcpRunning = true;
       notifyListeners();
+      // Обновить уведомление с данными устройства, если оно подключено
+      if (_connectedDevice != null) {
+        TcpForegroundService.update(
+          title: settings?.s.serverRunning ?? 'TCP server running',
+          text: 'Port $tcpPort • Clients: $tcpClients',
+          bigText:
+              '${settings?.s.serverRunning ?? 'TCP server running'}\n'
+              'Port: $tcpPort\n'
+              'Clients: $tcpClients\n'
+              'Device: ${_connectedDevice!.name}\n'
+              'Address: ${_connectedDevice!.address ?? _connectedDevice!.id}',
+        );
+      }
       return true;
     } catch (e) {
       _addLog('Не удалось запустить TCP сервер: $e', isError: true);

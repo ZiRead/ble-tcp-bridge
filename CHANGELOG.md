@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.4] — 2026-10-27
+
+### Added
+- **Background mode for TCP server**: foreground service with a persistent
+  notification (short summary + expanded details).
+- **Notification auto-restore**: reappears if dismissed while the server runs.
+- **Open app from notification**: tapping the notification opens the app.
+- **"Request permissions" button** on the "Settings" tab (style like "About").
+
+### Changed
+- Notification shows connected device name and address in expanded view.
+- Foreground service stops cleanly when the app is removed from recents.
+
+### Fixed
+- Notification no longer appears when the TCP server is stopped.
+- Stale notification/service is cleared on app start.
+
 ## [1.2.3] — 2026-10-27
 
 ### Added

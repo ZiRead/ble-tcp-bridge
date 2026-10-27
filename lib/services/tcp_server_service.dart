@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'foreground_service.dart';
 import 'settings_controller.dart';
 
 /// Локальный TCP-сервер, который пробрасывает данные
@@ -39,12 +40,27 @@ class TcpServerService {
       _events.add(settings?.s.tcpServerStarted(port) ??
           'Сервер запущен на порту $port');
 
+      // Фоновый сервис с уведомлением
+      TcpForegroundService.start(
+        title: settings?.s.serverRunning ?? 'TCP server running',
+        text: 'Port $port',
+        bigText:
+            '${settings?.s.serverRunning ?? 'TCP server running'}\nPort: $port\nClients: ${_clients.length}',
+      );
+
       _server!.listen((client) {
         _clients.add(client);
         _events.add(settings?.s.tcpClientConnected(
                 client.remoteAddress.address, _clients.length) ??
             'Клиент подключён: ${client.remoteAddress.address} '
                 '(всего: ${_clients.length})');
+
+        TcpForegroundService.update(
+          title: settings?.s.serverRunning ?? 'TCP server running',
+          text: 'Port $_port  •  Clients: ${_clients.length}',
+          bigText:
+              '${settings?.s.serverRunning ?? 'TCP server running'}\nPort: $_port\nClients: ${_clients.length}',
+        );
 
         client.listen(
           (data) {
@@ -65,6 +81,8 @@ class TcpServerService {
   Future<void> stop() async {
     if (!_running) return;
     _running = false;
+
+    TcpForegroundService.stop();
 
     for (final c in List.of(_clients)) {
       try {

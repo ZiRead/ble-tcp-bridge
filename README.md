@@ -44,6 +44,7 @@ and a **local TCP server** on port **8080**.
 
 ### 🌐 "TCP server" tab
 - Start/stop local TCP server on port **8080** (port is configurable).
+- Runs in the background while the server is active (status-bar notification).
 - Support for **multiple TCP clients** simultaneously.
 - **Bidirectional data forwarding**:
   - device → all TCP clients (broadcast);

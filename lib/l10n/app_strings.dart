@@ -127,6 +127,10 @@ class AppStrings {
   String get settingsUsbBaudRate => isRu ? 'Скорость USB (baud rate)' : 'USB baud rate';
   String get settingsDisableNonSerial =>
       isRu ? 'Отключать подключение к не-Serial' : 'Disable connecting to non-Serial';
+  String get settingsRequestPermissions =>
+      isRu ? 'Запросить разрешения' : 'Request permissions';
+  String get settingsPermissionsRequested =>
+      isRu ? 'Запрос разрешений выполнен' : 'Permissions requested';
 
   // ===== О приложении =====
   String get settingsAbout => isRu ? 'О приложении' : 'About';

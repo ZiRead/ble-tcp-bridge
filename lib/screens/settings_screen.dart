@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,6 +18,19 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _openGithub() async {
     await launchUrl(_githubUri, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _requestPermissions(BuildContext context, AppStrings s) async {
+    await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.location,
+      Permission.notification,
+    ].request();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(s.settingsPermissionsRequested)),
+    );
   }
 
   Future<void> _showAboutDialog(BuildContext context, AppStrings s) async {
@@ -168,6 +182,13 @@ class SettingsScreen extends StatelessWidget {
             title: Text(s.settingsDisableNonSerial),
             value: settings.disableNonSerialDevices,
             onChanged: (v) => settings.setDisableNonSerialDevices(v),
+          ),
+          const SizedBox(height: 12),
+          ListTile(
+            leading: const Icon(Icons.security),
+            title: Text(s.settingsRequestPermissions),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _requestPermissions(context, s),
           ),
           const SizedBox(height: 24),
           ListTile(

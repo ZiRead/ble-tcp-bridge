@@ -6,6 +6,7 @@ import 'screens/home_screen.dart';
 import 'services/ble_service.dart';
 import 'services/bridge_controller.dart';
 import 'services/bt_classic_service.dart';
+import 'services/foreground_service.dart';
 import 'services/settings_controller.dart';
 import 'services/tcp_server_service.dart';
 import 'services/usb_service.dart';
@@ -47,6 +48,7 @@ class _BleTcpBridgeAppState extends State<BleTcpBridgeApp> {
   @override
   void initState() {
     super.initState();
+    TcpForegroundService.stop().catchError((_) {});
     widget.settings.load();
   }
 
