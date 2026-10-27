@@ -27,6 +27,10 @@ void main() {
     settings: settings,
   );
 
+  settings.addListener(() {
+    if (bridge.tcpRunning) bridge.updateTcpNotification();
+  });
+
   runApp(BleTcpBridgeApp(bridge: bridge, settings: settings));
 }
 

@@ -93,6 +93,18 @@ class AppStrings {
 
   // ===== Вкладка «TCP сервер» =====
   String get serverRunning => isRu ? 'Сервер запущен' : 'Server running';
+  String notificationPort(int port) => isRu ? 'Порт: $port' : 'Port: $port';
+  String notificationClients(int count) =>
+      isRu ? 'Клиенты: $count' : 'Clients: $count';
+  String notificationSummary(int port, int clients) => isRu
+      ? 'Порт $port • Клиенты: $clients'
+      : 'Port $port • Clients: $clients';
+  String notificationDevice(String name) =>
+      isRu ? 'Устройство: $name' : 'Device: $name';
+  String notificationAddress(String address) =>
+      isRu ? 'Адрес: $address' : 'Address: $address';
+  String get notificationNoDevice =>
+      isRu ? 'Нет serial-устройства' : 'No serial device';
   String get serverStopped => isRu ? 'Сервер остановлен' : 'Server stopped';
   String clients(int n) =>
       isRu ? '$n клиент(ов)' : (n == 1 ? '1 client' : '$n clients');

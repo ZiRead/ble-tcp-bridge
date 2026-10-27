@@ -117,13 +117,14 @@ class BridgeController extends ChangeNotifier {
       if (_tcpRunning) {
         TcpForegroundService.update(
           title: settings?.s.serverRunning ?? 'TCP server running',
-          text: 'Port $tcpPort • Clients: $tcpClients',
+          text: settings?.s.notificationSummary(tcpPort, tcpClients) ??
+              'Port $tcpPort • Clients: $tcpClients',
           bigText:
               '${settings?.s.serverRunning ?? 'TCP server running'}\n'
-              'Port: $tcpPort\n'
-              'Clients: $tcpClients\n'
-              'Device: ${device.name}\n'
-              'Address: ${device.address ?? device.id}',
+              '${settings?.s.notificationPort(tcpPort) ?? 'Port: $tcpPort'}\n'
+              '${settings?.s.notificationClients(tcpClients) ?? 'Clients: $tcpClients'}\n'
+              '${settings?.s.notificationDevice(device.name) ?? 'Device: ${device.name}'}\n'
+              '${settings?.s.notificationAddress(device.address ?? device.id) ?? 'Address: ${device.address ?? device.id}'}',
         );
       }
 
@@ -160,12 +161,13 @@ class BridgeController extends ChangeNotifier {
     if (_tcpRunning) {
       TcpForegroundService.update(
         title: settings?.s.serverRunning ?? 'TCP server running',
-        text: 'Port $tcpPort • Clients: $tcpClients',
+        text: settings?.s.notificationSummary(tcpPort, tcpClients) ??
+            'Port $tcpPort • Clients: $tcpClients',
         bigText:
             '${settings?.s.serverRunning ?? 'TCP server running'}\n'
-            'Port: $tcpPort\n'
-            'Clients: $tcpClients\n'
-            'Device: none',
+            '${settings?.s.notificationPort(tcpPort) ?? 'Port: $tcpPort'}\n'
+            '${settings?.s.notificationClients(tcpClients) ?? 'Clients: $tcpClients'}\n'
+            '${settings?.s.notificationNoDevice ?? 'No serial device'}',
       );
     }
     notifyListeners();
@@ -173,22 +175,52 @@ class BridgeController extends ChangeNotifier {
 
   // ================= TCP сервер =================
 
+  void updateTcpNotification() {
+    if (!_tcpRunning) return;
+    final dev = _connectedDevice;
+    TcpForegroundService.update(
+      title: settings?.s.serverRunning ?? 'TCP server running',
+      text: settings?.s.notificationSummary(tcpPort, tcpClients) ??
+          'Port $tcpPort • Clients: $tcpClients',
+      bigText: dev != null
+          ? '${settings?.s.serverRunning ?? 'TCP server running'}\n'
+              '${settings?.s.notificationPort(tcpPort) ?? 'Port: $tcpPort'}\n'
+              '${settings?.s.notificationClients(tcpClients) ?? 'Clients: $tcpClients'}\n'
+              '${settings?.s.notificationDevice(dev.name) ?? 'Device: ${dev.name}'}\n'
+              '${settings?.s.notificationAddress(dev.address ?? dev.id) ?? 'Address: ${dev.address ?? dev.id}'}'
+          : '${settings?.s.serverRunning ?? 'TCP server running'}\n'
+              '${settings?.s.notificationPort(tcpPort) ?? 'Port: $tcpPort'}\n'
+              '${settings?.s.notificationClients(tcpClients) ?? 'Clients: $tcpClients'}\n'
+              '${settings?.s.notificationNoDevice ?? 'No serial device'}',
+    );
+  }
   Future<bool> startTcpServer({int port = TcpServerService.defaultPort}) async {
     try {
-      await tcpServer.start(port: port);
       _tcpRunning = true;
       notifyListeners();
       // Обновить уведомление с данными устройства, если оно подключено
       if (_connectedDevice != null) {
         TcpForegroundService.update(
           title: settings?.s.serverRunning ?? 'TCP server running',
-          text: 'Port $tcpPort • Clients: $tcpClients',
+          text: settings?.s.notificationSummary(tcpPort, tcpClients) ??
+              'Port $tcpPort • Clients: $tcpClients',
           bigText:
               '${settings?.s.serverRunning ?? 'TCP server running'}\n'
-              'Port: $tcpPort\n'
-              'Clients: $tcpClients\n'
-              'Device: ${_connectedDevice!.name}\n'
-              'Address: ${_connectedDevice!.address ?? _connectedDevice!.id}',
+              '${settings?.s.notificationPort(tcpPort) ?? 'Port: $tcpPort'}\n'
+              '${settings?.s.notificationClients(tcpClients) ?? 'Clients: $tcpClients'}\n'
+              '${settings?.s.notificationDevice(_connectedDevice!.name) ?? 'Device: ${_connectedDevice!.name}'}\n'
+              '${settings?.s.notificationAddress(_connectedDevice!.address ?? _connectedDevice!.id) ?? 'Address: ${_connectedDevice!.address ?? _connectedDevice!.id}'}',
+        );
+      } else {
+        TcpForegroundService.update(
+          title: settings?.s.serverRunning ?? 'TCP server running',
+          text: settings?.s.notificationSummary(tcpPort, tcpClients) ??
+              'Port $tcpPort • Clients: $tcpClients',
+          bigText:
+              '${settings?.s.serverRunning ?? 'TCP server running'}\n'
+              '${settings?.s.notificationPort(tcpPort) ?? 'Port: $tcpPort'}\n'
+              '${settings?.s.notificationClients(tcpClients) ?? 'Clients: $tcpClients'}\n'
+              '${settings?.s.notificationNoDevice ?? 'No serial device'}',
         );
       }
       return true;

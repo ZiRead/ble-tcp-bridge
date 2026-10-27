@@ -41,11 +41,16 @@ class TcpServerService {
           'Сервер запущен на порту $port');
 
       // Фоновый сервис с уведомлением
+      final s = settings?.s;
       TcpForegroundService.start(
-        title: settings?.s.serverRunning ?? 'TCP server running',
-        text: 'Port $port',
+        title: s?.serverRunning ?? 'TCP server running',
+        text: s?.notificationSummary(port, _clients.length) ??
+            'Port $port • Clients: ${_clients.length}',
         bigText:
-            '${settings?.s.serverRunning ?? 'TCP server running'}\nPort: $port\nClients: ${_clients.length}',
+            '${s?.serverRunning ?? 'TCP server running'}\n'
+            '${s?.notificationPort(port) ?? 'Port: $port'}\n'
+            '${s?.notificationClients(_clients.length) ?? 'Clients: ${_clients.length}'}\n'
+            '${s?.notificationNoDevice ?? 'No serial device'}',
       );
 
       _server!.listen((client) {
@@ -57,9 +62,13 @@ class TcpServerService {
 
         TcpForegroundService.update(
           title: settings?.s.serverRunning ?? 'TCP server running',
-          text: 'Port $_port  •  Clients: ${_clients.length}',
+          text: settings?.s.notificationSummary(_port, _clients.length) ??
+              'Port $_port • Clients: ${_clients.length}',
           bigText:
-              '${settings?.s.serverRunning ?? 'TCP server running'}\nPort: $_port\nClients: ${_clients.length}',
+              '${settings?.s.serverRunning ?? 'TCP server running'}\n'
+              '${settings?.s.notificationPort(_port) ?? 'Port: $_port'}\n'
+              '${settings?.s.notificationClients(_clients.length) ?? 'Clients: ${_clients.length}'}\n'
+              '${settings?.s.notificationNoDevice ?? 'No serial device'}',
         );
 
         client.listen(
