@@ -8,16 +8,18 @@ import 'tcp_screen.dart';
 import 'terminal_screen.dart';
 
 /// Главный экран с нижней навигацией:
-/// «Устройства», «TCP сервер», «Настройки».
+/// «Устройства», «TCP сервер», «Терминал», «Настройки».
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+
+  void setTab(int index) => setState(() => _index = index);
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +28,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: const [
+        children: [
           DevicesScreen(),
           TcpScreen(),
-          TerminalScreen(),
+          TerminalScreen(
+            onOpenTerminalSettings: () => setState(() => _index = 3),
+          ),
           SettingsScreen(),
         ],
       ),

@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] — 2026-10-27
+
+### Added
+- **Terminal settings**: Data/Stop bits, Parity, Flow control, Line ending,
+  Auto scroll, RX/TX display mode (ASCII/HEX).
+- **USB baud rate**: extended list up to 921600 + manual input.
+- **Export terminal log**: system save dialog to choose destination.
+- **"Terminal settings" button** in Settings and quick button in Terminal tab.
+
+### Changed
+- Removed 5/6 data bits and 1.5 stop bit options (non-standard).
+- RX/TX display mode uses dropdowns like other settings.
+
+### Fixed
+- Dropdown value safety (no invalid selections).
+- (Other minor fixes.)
+
 ## [1.3.0] — 2026-10-27
 
 ### Added

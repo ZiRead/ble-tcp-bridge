@@ -107,6 +107,9 @@ class BridgeController extends ChangeNotifier {
           port = await usbService.connect(
             device,
             baudRate: settings?.usbBaudRate ?? 115200,
+            dataBits: settings?.terminalDataBits ?? 8,
+            stopBits: settings?.terminalStopBits ?? 1,
+            parity: settings?.terminalParity ?? 0,
           );
           break;
       }

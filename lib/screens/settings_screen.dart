@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,7 +14,9 @@ class SettingsScreen extends StatelessWidget {
   static final Uri _githubUri =
       Uri.parse('https://github.com/ZiRead/ble-tcp-bridge');
 
-  static const List<int> _baudRates = [9600, 19200, 38400, 57600, 115200];
+  static const List<int> _baudRates = [
+    9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
+  ];
 
   Future<void> _openGithub() async {
     await launchUrl(_githubUri, mode: LaunchMode.externalApplication);
@@ -30,6 +32,178 @@ class SettingsScreen extends StatelessWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(s.settingsPermissionsRequested)),
+    );
+  }
+
+  Future<void> _showTerminalSettingsDialog(
+    BuildContext context,
+    AppStrings s,
+    SettingsController settings,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return AlertDialog(
+              title: Text(s.terminalSettings),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<int>(
+                      // ignore: deprecated_member_use
+                      value: [5, 6, 7, 8].contains(settings.terminalDataBits)
+                          ? settings.terminalDataBits
+                          : 8,
+                      decoration: InputDecoration(labelText: s.terminalDataBits),
+                      items: const [7, 8]
+                          .map((v) => DropdownMenuItem<int>(
+                                value: v,
+                                child: Text('$v'),
+                              ))
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) {
+                          settings.setTerminalDataBits(v);
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      // ignore: deprecated_member_use
+                      value: [1, 2, 3].contains(settings.terminalStopBits)
+                          ? settings.terminalStopBits
+                          : 1,
+                      decoration: InputDecoration(labelText: s.terminalStopBits),
+                      items: const [1, 2]
+                          .map((v) => DropdownMenuItem<int>(
+                                value: v,
+                                child: Text('$v'),
+                              ))
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) {
+                          settings.setTerminalStopBits(v);
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      // ignore: deprecated_member_use
+                      value: settings.terminalParity.clamp(0, 2),
+                      decoration: InputDecoration(labelText: s.terminalParity),
+                      items: [
+                        DropdownMenuItem<int>(value: 0, child: Text(s.parityNone)),
+                        DropdownMenuItem<int>(value: 1, child: Text(s.parityOdd)),
+                        DropdownMenuItem<int>(value: 2, child: Text(s.parityEven)),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          settings.setTerminalParity(v);
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      // ignore: deprecated_member_use
+                      value: settings.terminalFlowControl.clamp(0, 3),
+                      decoration:
+                          InputDecoration(labelText: s.terminalFlowControl),
+                      items: [
+                        DropdownMenuItem<int>(value: 0, child: Text(s.flowNone)),
+                        DropdownMenuItem<int>(value: 1, child: Text(s.flowRtsCts)),
+                        DropdownMenuItem<int>(value: 2, child: Text(s.flowDsrDtr)),
+                        DropdownMenuItem<int>(value: 3, child: Text(s.flowXonXoff)),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          settings.setTerminalFlowControl(v);
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      // ignore: deprecated_member_use
+                      value: ['\n', '\r', '\r\n'].contains(settings.terminalLineEnding)
+                          ? settings.terminalLineEnding
+                          : '\n',
+                      decoration:
+                          InputDecoration(labelText: s.terminalLineEnding),
+                      items: [
+                        DropdownMenuItem<String>(
+                            value: '\n', child: Text(s.lineEndingLF)),
+                        DropdownMenuItem<String>(
+                            value: '\r', child: Text(s.lineEndingCR)),
+                        DropdownMenuItem<String>(
+                            value: '\r\n', child: Text(s.lineEndingCRLF)),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          settings.setTerminalLineEnding(v);
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      // ignore: deprecated_member_use
+                      value: settings.terminalRxHex ? 1 : 0,
+                      decoration: InputDecoration(labelText: s.terminalRxDisplay),
+                      items: [
+                        DropdownMenuItem<int>(value: 0, child: Text(s.displayAscii)),
+                        DropdownMenuItem<int>(value: 1, child: Text(s.displayHex)),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          settings.setTerminalRxHex(v == 1);
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      // ignore: deprecated_member_use
+                      value: settings.terminalTxHex ? 1 : 0,
+                      decoration: InputDecoration(labelText: s.terminalTxDisplay),
+                      items: [
+                        DropdownMenuItem<int>(value: 0, child: Text(s.displayAscii)),
+                        DropdownMenuItem<int>(value: 1, child: Text(s.displayHex)),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          settings.setTerminalTxHex(v == 1);
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      title: Text(s.terminalAutoScroll),
+                      value: settings.terminalAutoScroll,
+                      onChanged: (v) {
+                        settings.setTerminalAutoScroll(v);
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(s.aboutClose),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -117,6 +291,13 @@ class SettingsScreen extends StatelessWidget {
     final settings = context.watch<SettingsController>();
     final s = settings.s;
 
+    if (settings.terminalSettingsRequested) {
+      settings.clearTerminalSettingsRequest();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showTerminalSettingsDialog(context, s, settings);
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(s.tabSettings),
@@ -160,21 +341,60 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          DropdownButtonFormField<int>(
-            // ignore: deprecated_member_use
-            value: settings.usbBaudRate,
-            decoration: InputDecoration(
-              labelText: s.settingsUsbBaudRate,
-              border: const OutlineInputBorder(),
-            ),
-            items: _baudRates
-                .map((b) => DropdownMenuItem<int>(
-                      value: b,
-                      child: Text('$b'),
-                    ))
-                .toList(),
-            onChanged: (v) {
-              if (v != null) settings.setUsbBaudRate(v);
+          StatefulBuilder(
+            builder: (context, setLocalState) {
+              final usbCustom = !_baudRates.contains(settings.usbBaudRate);
+              final customController =
+                  TextEditingController(text: usbCustom ? '${settings.usbBaudRate}' : '');
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<int>(
+                    // ignore: deprecated_member_use
+                    value: usbCustom ? -1 : settings.usbBaudRate,
+                    decoration: InputDecoration(
+                      labelText: s.settingsUsbBaudRate,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: [
+                      ..._baudRates.map((b) => DropdownMenuItem<int>(
+                            value: b,
+                            child: Text('$b'),
+                          )),
+                      DropdownMenuItem<int>(
+                        value: -1,
+                        child: Text(s.customBaudRate),
+                      ),
+                    ],
+                    onChanged: (v) {
+                      if (v == null) return;
+                      if (v == -1) {
+                        setLocalState(() {});
+                      } else {
+                        settings.setUsbBaudRate(v);
+                        setLocalState(() {});
+                      }
+                    },
+                  ),
+                  if (usbCustom) ...[
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: customController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: s.customBaudRate,
+                        border: const OutlineInputBorder(),
+                      ),
+                      onSubmitted: (v) {
+                        final parsed = int.tryParse(v.trim());
+                        if (parsed != null && parsed > 0) {
+                          settings.setUsbBaudRate(parsed);
+                        }
+                      },
+                    ),
+                  ],
+                ],
+              );
             },
           ),
           const SizedBox(height: 12),
@@ -182,6 +402,13 @@ class SettingsScreen extends StatelessWidget {
             title: Text(s.settingsDisableNonSerial),
             value: settings.disableNonSerialDevices,
             onChanged: (v) => settings.setDisableNonSerialDevices(v),
+          ),
+          const SizedBox(height: 12),
+          ListTile(
+            leading: const Icon(Icons.terminal),
+            title: Text(s.terminalSettings),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showTerminalSettingsDialog(context, s, settings),
           ),
           const SizedBox(height: 12),
           ListTile(

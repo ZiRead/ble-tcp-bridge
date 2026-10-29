@@ -212,5 +212,29 @@ class AppStrings {
   String get terminalFontSize => isRu ? 'Размер шрифта' : 'Font size';
   String get terminalTextColor => isRu ? 'Цвет текста' : 'Text color';
   String get terminalBgColor => isRu ? 'Цвет фона' : 'Background color';
+  String get terminalSettings => isRu ? 'Настройки терминала' : 'Terminal settings';
+  String get terminalDataBits => isRu ? 'Биты данных' : 'Data bits';
+  String get terminalStopBits => isRu ? 'Стоп-биты' : 'Stop bits';
+  String get terminalParity => isRu ? 'Чётность' : 'Parity';
+  String get terminalFlowControl => isRu ? 'Управление потоком' : 'Flow control';
+  String get terminalLineEnding => isRu ? 'Конец строки' : 'Line ending';
+  String get terminalAutoScroll => isRu ? 'Автопрокрутка' : 'Auto scroll';
+  String get terminalRxDisplay => isRu ? 'Отображение RX' : 'RX display';
+  String get terminalTxDisplay => isRu ? 'Отображение TX' : 'TX display';
+  String get displayAscii => 'ASCII';
+  String get displayHex => 'HEX';
+  String get customBaudRate => isRu ? 'Своя скорость' : 'Custom baud rate';
+
+  // Значения
+  String get parityNone => isRu ? 'Нет' : 'None';
+  String get parityOdd => isRu ? 'Нечётная' : 'Odd';
+  String get parityEven => isRu ? 'Чётная' : 'Even';
+  String get flowNone => isRu ? 'Нет' : 'None';
+  String get flowRtsCts => 'RTS/CTS';
+  String get flowDsrDtr => 'DSR/DTR';
+  String get flowXonXoff => 'XON/XOFF';
+  String get lineEndingLF => isRu ? 'LF (\\n)' : 'LF (\\n)';
+  String get lineEndingCR => isRu ? 'CR (\\r)' : 'CR (\\r)';
+  String get lineEndingCRLF => isRu ? 'CRLF (\\r\\n)' : 'CRLF (\\r\\n)';
   String get aboutClose => isRu ? 'Закрыть' : 'Close';
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,7 +13,8 @@ import '../widgets/status_banner.dart';
 
 /// Вкладка «Терминал»: прямой доступ к serial-устройству.
 class TerminalScreen extends StatefulWidget {
-  const TerminalScreen({super.key});
+  final VoidCallback? onOpenTerminalSettings;
+  const TerminalScreen({super.key, this.onOpenTerminalSettings});
 
   @override
   State<TerminalScreen> createState() => _TerminalScreenState();
@@ -68,7 +70,11 @@ class _TerminalScreenState extends State<TerminalScreen> {
     _sub = null;
     if (port != null) {
       _sub = port.inputStream.listen((data) {
-        final text = utf8.decode(data, allowMalformed: true);
+        if (!mounted) return;
+        final settings = context.read<SettingsController>();
+        final text = settings.terminalRxHex
+            ? data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')
+            : utf8.decode(data, allowMalformed: true);
         setState(() {
           final parts = text.split('\n');
           for (var i = 0; i < parts.length; i++) {
@@ -86,7 +92,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
             _lines.removeRange(0, _lines.length - 1000);
           }
         });
-        _scrollToBottom();
+        if (!mounted) return;
+        if (context.read<SettingsController>().terminalAutoScroll) _scrollToBottom();
       });
     }
   }
@@ -105,13 +112,19 @@ class _TerminalScreenState extends State<TerminalScreen> {
 
   Future<void> _send() async {
     final bridge = context.read<BridgeController>();
+    final settings = context.read<SettingsController>();
     final port = bridge.port;
     final text = _inputController.text;
     if (port == null || text.isEmpty) return;
-    final data = Uint8List.fromList(utf8.encode('$text\n'));
+    final lineEnding = settings.terminalLineEnding;
+    final data = Uint8List.fromList(utf8.encode('$text$lineEnding'));
     await port.write(data);
     setState(() {
-      _lines.add('> $text');
+      if (settings.terminalTxHex) {
+        _lines.add('> ${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+      } else {
+        _lines.add('> $text');
+      }
       _commandHistory.add(text);
       _historyLineIndices.add(_lines.length - 1);
       _historyIndex = -1;
@@ -119,7 +132,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
       _selectedLineIndex = null;
     });
     _inputController.clear();
-    _scrollToBottom();
+    if (settings.terminalAutoScroll) _scrollToBottom();
   }
 
   void _historyUp() {
@@ -153,6 +166,25 @@ class _TerminalScreenState extends State<TerminalScreen> {
     setState(() => _selectedLineIndex = lineIndex);
   }
 
+  Future<void> _exportLog() async {
+    try {
+      final path = await FilePicker.saveFile(
+        dialogTitle: 'Save terminal log',
+        fileName: 'terminal_log.txt',
+        bytes: Uint8List.fromList(utf8.encode(_lines.join('\n'))),
+      );
+      if (path == null) return;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved: $path')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export failed: $e')),
+      );
+    }
+  }
   @override
   void dispose() {
     _sub?.cancel();
@@ -198,7 +230,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
                   Text(s.terminalFontSize, style: const TextStyle(fontSize: 12)),
                   const SizedBox(width: 4),
                   DropdownButton<double>(
-                    value: fontSize,
+                    value: _fontSizes.contains(fontSize) ? fontSize : 14,
                     items: _fontSizes
                         .map((f) => DropdownMenuItem<double>(
                               value: f,
@@ -213,7 +245,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
                   Text(s.terminalTextColor, style: const TextStyle(fontSize: 12)),
                   const SizedBox(width: 4),
                   DropdownButton<int>(
-                    value: settings.terminalTextColor,
+                    value: settings.terminalTextColor.clamp(0, _textColors.length - 1),
                     items: List.generate(
                       _textColors.length,
                       (i) => DropdownMenuItem<int>(
@@ -233,7 +265,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
                   Text(s.terminalBgColor, style: const TextStyle(fontSize: 12)),
                   const SizedBox(width: 4),
                   DropdownButton<int>(
-                    value: settings.terminalBgColor,
+                    value: settings.terminalBgColor.clamp(0, _bgColors.length - 1),
                     items: List.generate(
                       _bgColors.length,
                       (i) => DropdownMenuItem<int>(
@@ -292,15 +324,35 @@ class _TerminalScreenState extends State<TerminalScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.keyboard_arrow_up),
-                        onPressed: _historyUp,
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.save_alt, size: 20),
+                            onPressed: _exportLog,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.settings, size: 20),
+                            onPressed: () {
+                              final settings = context.read<SettingsController>();
+                              settings.requestTerminalSettings();
+                              widget.onOpenTerminalSettings?.call();
+                            },
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        onPressed: _historyDown,
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.keyboard_arrow_up),
+                            onPressed: _historyUp,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.keyboard_arrow_down),
+                            onPressed: _historyDown,
+                          ),
+                        ],
                       ),
                     ],
                   ),

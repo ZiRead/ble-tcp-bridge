@@ -58,7 +58,13 @@ class UsbService {
   /// Подключиться к USB устройству.
   ///
   /// Возвращает [UsbSerialPort] или бросает исключение.
-  Future<UsbSerialPort> connect(DeviceInfo info, {int baudRate = 115200}) async {
+  Future<UsbSerialPort> connect(
+    DeviceInfo info, {
+    int baudRate = 115200,
+    int dataBits = 8,
+    int stopBits = 1,
+    int parity = 0,
+  }) async {
     final device = info.raw as UsbDevice;
     final port = await device.create();
     if (port == null) {
@@ -77,9 +83,17 @@ class UsbService {
     await port.setRTS(true);
     await port.setPortParameters(
       baudRate,
-      UsbPort.DATABITS_8,
-      UsbPort.STOPBITS_1,
-      UsbPort.PARITY_NONE,
+      dataBits,
+      stopBits == 1
+          ? UsbPort.STOPBITS_1
+          : stopBits == 2
+              ? UsbPort.STOPBITS_2
+              : UsbPort.STOPBITS_1_5,
+      parity == 0
+          ? UsbPort.PARITY_NONE
+          : parity == 1
+              ? UsbPort.PARITY_ODD
+              : UsbPort.PARITY_EVEN,
     );
 
     return UsbSerialPort(port, info.name);
