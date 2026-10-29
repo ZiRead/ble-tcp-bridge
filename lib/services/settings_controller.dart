@@ -19,6 +19,7 @@ class SettingsController extends ChangeNotifier {
   static const _prefTermAutoScroll = 'terminal_auto_scroll';
   static const _prefTermRxHex = 'terminal_rx_hex';
   static const _prefTermTxHex = 'terminal_tx_hex';
+  static const _prefTermNewLine = 'terminal_new_line_on_receive';
 
   Locale _locale = const Locale('ru');
   Locale get locale => _locale;
@@ -62,6 +63,9 @@ class SettingsController extends ChangeNotifier {
   bool _terminalAutoScroll = true;
   bool get terminalAutoScroll => _terminalAutoScroll;
 
+  bool _terminalNewLineOnReceive = true;
+  bool get terminalNewLineOnReceive => _terminalNewLineOnReceive;
+
   bool _terminalRxHex = false;
   bool get terminalRxHex => _terminalRxHex;
 
@@ -100,6 +104,7 @@ class SettingsController extends ChangeNotifier {
       _terminalAutoScroll = prefs.getBool(_prefTermAutoScroll) ?? true;
       _terminalRxHex = prefs.getBool(_prefTermRxHex) ?? false;
       _terminalTxHex = prefs.getBool(_prefTermTxHex) ?? false;
+      _terminalNewLineOnReceive = prefs.getBool(_prefTermNewLine) ?? true;
       notifyListeners();
     } catch (_) {}
   }
@@ -242,6 +247,15 @@ class SettingsController extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefTermTxHex, value);
+    } catch (_) {}
+  }
+
+  Future<void> setTerminalNewLineOnReceive(bool value) async {
+    _terminalNewLineOnReceive = value;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefTermNewLine, value);
     } catch (_) {}
   }
 }

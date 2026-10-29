@@ -224,8 +224,10 @@ class AppStrings {
   String get terminalFlowControl => isRu ? 'Управление потоком' : 'Flow control';
   String get terminalLineEnding => isRu ? 'Конец строки' : 'Line ending';
   String get terminalAutoScroll => isRu ? 'Автопрокрутка' : 'Auto scroll';
+  String get terminalNewLineOnReceive =>
+      isRu ? 'Новая строка для ответа' : 'New line on receive';
   String get terminalRxDisplay => isRu ? 'Отображение RX' : 'RX display';
-  String get terminalTxDisplay => isRu ? 'Отображение TX' : 'TX display';
+  String get terminalTxSend => isRu ? 'Отправка TX' : 'TX send';
   String get displayAscii => 'ASCII';
   String get displayHex => 'HEX';
   String get customBaudRate => isRu ? 'Своя скорость' : 'Custom baud rate';

@@ -76,16 +76,23 @@ class _TerminalScreenState extends State<TerminalScreen> {
             ? data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')
             : utf8.decode(data, allowMalformed: true);
         setState(() {
-          final parts = text.split('\n');
-          for (var i = 0; i < parts.length; i++) {
-            if (i == 0) {
-              if (_lines.isEmpty) {
-                _lines.add(parts[i]);
+          if (settings.terminalNewLineOnReceive) {
+            final parts = text.split('\n');
+            for (final part in parts) {
+              _lines.add(part);
+            }
+          } else {
+            final parts = text.split('\n');
+            for (var i = 0; i < parts.length; i++) {
+              if (i == 0) {
+                if (_lines.isEmpty) {
+                  _lines.add(parts[i]);
+                } else {
+                  _lines[_lines.length - 1] += parts[i];
+                }
               } else {
-                _lines[_lines.length - 1] += parts[i];
+                _lines.add(parts[i]);
               }
-            } else {
-              _lines.add(parts[i]);
             }
           }
           if (_lines.length > 1000) {
@@ -114,10 +121,28 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final bridge = context.read<BridgeController>();
     final settings = context.read<SettingsController>();
     final port = bridge.port;
-    final text = _inputController.text;
+    final text = _inputController.text.trim();
     if (port == null || text.isEmpty) return;
-    final lineEnding = settings.terminalLineEnding;
-    final data = Uint8List.fromList(utf8.encode('$text$lineEnding'));
+
+    Uint8List data;
+    if (settings.terminalTxHex) {
+      final hex = text.replaceAll(RegExp(r'[^0-9a-fA-F]'), '');
+      if (hex.isEmpty || hex.length.isOdd) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid HEX input')),
+        );
+        return;
+      }
+      final bytes = <int>[];
+      for (var i = 0; i < hex.length; i += 2) {
+        bytes.add(int.parse(hex.substring(i, i + 2), radix: 16));
+      }
+      data = Uint8List.fromList(bytes);
+    } else {
+      data = Uint8List.fromList(utf8.encode('$text${settings.terminalLineEnding}'));
+    }
+
     await port.write(data);
     setState(() {
       if (settings.terminalTxHex) {
@@ -363,7 +388,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
                           controller: _inputController,
                           style: const TextStyle(fontFamily: 'monospace'),
                           decoration: InputDecoration(
-                            hintText: s.terminalInputHint,
+                            hintText: settings.terminalTxHex
+                            ? 'XX XX XX XX...'
+                            : s.terminalInputHint,
                             border: const OutlineInputBorder(),
                             isDense: true,
                           ),

@@ -173,7 +173,7 @@ class SettingsScreen extends StatelessWidget {
                     DropdownButtonFormField<int>(
                       // ignore: deprecated_member_use
                       value: settings.terminalTxHex ? 1 : 0,
-                      decoration: InputDecoration(labelText: s.terminalTxDisplay),
+                      decoration: InputDecoration(labelText: s.terminalTxSend),
                       items: [
                         DropdownMenuItem<int>(value: 0, child: Text(s.displayAscii)),
                         DropdownMenuItem<int>(value: 1, child: Text(s.displayHex)),
@@ -191,6 +191,14 @@ class SettingsScreen extends StatelessWidget {
                       value: settings.terminalAutoScroll,
                       onChanged: (v) {
                         settings.setTerminalAutoScroll(v);
+                        setState(() {});
+                      },
+                    ),
+                    SwitchListTile(
+                      title: Text(s.terminalNewLineOnReceive),
+                      value: settings.terminalNewLineOnReceive,
+                      onChanged: (v) {
+                        settings.setTerminalNewLineOnReceive(v);
                         setState(() {});
                       },
                     ),

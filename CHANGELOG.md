@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] — 2026-10-27
+
+### Added
+- **New line on receive**: option in Terminal settings to start device response
+  on a new line.
+- **Check for updates** button in Settings.
+- **Terminal settings button** in Terminal tab and Settings.
+
+### Changed
+- USB baud rate list extended up to 921600; removed custom input.
+- Removed 5/6 data bits and 1.5 stop bit options.
+
+### Fixed
+- Dropdown value safety (no invalid selections).
+- Terminal receives device responses (broadcast streams).
+- Notification language updates immediately on language change.
+- TCP server address shows all local IPs.
+
 ## [1.3.1] — 2026-10-27
 
 ### Added
