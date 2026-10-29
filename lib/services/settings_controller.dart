@@ -75,6 +75,8 @@ class SettingsController extends ChangeNotifier {
       final code = prefs.getString(_prefKey) ?? 'ru';
       _locale = (code == 'en') ? const Locale('en') : const Locale('ru');
       _usbBaudRate = prefs.getInt(_prefUsbBaud) ?? 115200;
+      const bauds = [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600];
+      if (!bauds.contains(_usbBaudRate)) _usbBaudRate = 115200;
       _disableNonSerialDevices =
           prefs.getBool(_prefDisableNonSerial) ?? true;
       _terminalFontSize = prefs.getDouble(_prefTermFontSize) ?? 14;

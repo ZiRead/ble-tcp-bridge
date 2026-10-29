@@ -409,60 +409,21 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          StatefulBuilder(
-            builder: (context, setLocalState) {
-              final usbCustom = !_baudRates.contains(settings.usbBaudRate);
-              final customController =
-                  TextEditingController(text: usbCustom ? '${settings.usbBaudRate}' : '');
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DropdownButtonFormField<int>(
-                    // ignore: deprecated_member_use
-                    value: usbCustom ? -1 : settings.usbBaudRate,
-                    decoration: InputDecoration(
-                      labelText: s.settingsUsbBaudRate,
-                      border: const OutlineInputBorder(),
-                    ),
-                    items: [
-                      ..._baudRates.map((b) => DropdownMenuItem<int>(
-                            value: b,
-                            child: Text('$b'),
-                          )),
-                      DropdownMenuItem<int>(
-                        value: -1,
-                        child: Text(s.customBaudRate),
-                      ),
-                    ],
-                    onChanged: (v) {
-                      if (v == null) return;
-                      if (v == -1) {
-                        setLocalState(() {});
-                      } else {
-                        settings.setUsbBaudRate(v);
-                        setLocalState(() {});
-                      }
-                    },
-                  ),
-                  if (usbCustom) ...[
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: customController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: s.customBaudRate,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onSubmitted: (v) {
-                        final parsed = int.tryParse(v.trim());
-                        if (parsed != null && parsed > 0) {
-                          settings.setUsbBaudRate(parsed);
-                        }
-                      },
-                    ),
-                  ],
-                ],
-              );
+          DropdownButtonFormField<int>(
+            // ignore: deprecated_member_use
+            value: settings.usbBaudRate,
+            decoration: InputDecoration(
+              labelText: s.settingsUsbBaudRate,
+              border: const OutlineInputBorder(),
+            ),
+            items: _baudRates
+                .map((b) => DropdownMenuItem<int>(
+                      value: b,
+                      child: Text('$b'),
+                    ))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) settings.setUsbBaudRate(v);
             },
           ),
           const SizedBox(height: 12),
