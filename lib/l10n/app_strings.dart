@@ -149,6 +149,11 @@ class AppStrings {
 
   // ===== О приложении =====
   String get settingsAbout => isRu ? 'О приложении' : 'About';
+  String get settingsCheckUpdates => isRu ? 'Проверить обновления' : 'Check for updates';
+  String get updateAvailable => isRu ? 'Доступно обновление' : 'Update available';
+  String get updateUpToDate => isRu ? 'Установлена актуальная версия' : 'You are up to date';
+  String get updateOpen => isRu ? 'Открыть' : 'Open';
+  String get updateError => isRu ? 'Не удалось проверить обновления' : 'Failed to check for updates';
   String get aboutTitle => isRu ? 'О приложении' : 'About';
   String get aboutDescription => isRu
       ? 'BLE / USB → TCP Bridge — мост между serial-устройствами '

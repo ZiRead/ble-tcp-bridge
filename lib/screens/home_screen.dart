@@ -29,12 +29,12 @@ class HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _index,
         children: [
-          DevicesScreen(),
-          TcpScreen(),
+          const DevicesScreen(),
+          const TcpScreen(),
           TerminalScreen(
             onOpenTerminalSettings: () => setState(() => _index = 3),
           ),
-          SettingsScreen(),
+          const SettingsScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -205,6 +208,71 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _checkUpdates(BuildContext context, AppStrings s) async {
+    try {
+      final client = HttpClient();
+      final req = await client.getUrl(
+        Uri.parse('https://api.github.com/repos/ZiRead/ble-tcp-bridge/releases/latest'),
+      );
+      req.headers.set('Accept', 'application/vnd.github+json');
+      req.headers.set('User-Agent', 'ble-tcp-bridge');
+      final res = await req.close();
+      final body = await res.transform(utf8.decoder).join();
+      client.close();
+      if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
+      final json = jsonDecode(body) as Map<String, dynamic>;
+      final latestTag = (json['tag_name'] as String? ?? '').replaceFirst('v', '');
+      final url = json['html_url'] as String? ??
+          'https://github.com/ZiRead/ble-tcp-bridge/releases';
+      final info = await PackageInfo.fromPlatform();
+      if (!context.mounted) return;
+      if (_isNewer(latestTag, info.version)) {
+        showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(s.updateAvailable),
+            content: Text(latestTag),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(s.aboutClose),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  Navigator.of(ctx).pop();
+                  final uri = Uri.parse(url);
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                },
+                child: Text(s.updateOpen),
+              ),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(s.updateUpToDate)),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(s.updateError)),
+      );
+    }
+  }
+
+  bool _isNewer(String latest, String current) {
+    final l = latest.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final c = current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final n = l.length > c.length ? l.length : c.length;
+    for (var i = 0; i < n; i++) {
+      final lv = i < l.length ? l[i] : 0;
+      final cv = i < c.length ? c[i] : 0;
+      if (lv != cv) return lv > cv;
+    }
+    return false;
   }
 
   Future<void> _showAboutDialog(BuildContext context, AppStrings s) async {
@@ -417,7 +485,14 @@ class SettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _requestPermissions(context, s),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
+          ListTile(
+            leading: const Icon(Icons.system_update),
+            title: Text(s.settingsCheckUpdates),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _checkUpdates(context, s),
+          ),
+          const SizedBox(height: 12),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(s.settingsAbout),
