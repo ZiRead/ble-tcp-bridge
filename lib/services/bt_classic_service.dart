@@ -13,12 +13,13 @@ import 'serial_port.dart';
 class BtClassicSerialPort implements SerialPort {
   final BluetoothConnection _connection;
   final String _label;
+  Stream<Uint8List>? _inputStream;
 
   BtClassicSerialPort._(this._connection, this._label);
 
   @override
   Stream<Uint8List> get inputStream =>
-      _connection.input ?? const Stream.empty();
+      _inputStream ??= (_connection.input ?? const Stream.empty()).asBroadcastStream();
 
   @override
   Future<void> write(Uint8List data) async {

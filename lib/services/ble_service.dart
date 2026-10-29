@@ -75,12 +75,15 @@ class BleSerialPort implements SerialPort {
   final BluetoothDevice device;
   final BluetoothCharacteristic _tx; // запись в устройство
   final BluetoothCharacteristic _rx; // уведомления от устройства
+  Stream<Uint8List>? _inputStream;
 
   BleSerialPort(this.device, this._tx, this._rx);
 
   @override
   Stream<Uint8List> get inputStream =>
-      _rx.onValueReceived.map((v) => Uint8List.fromList(v));
+      _inputStream ??= _rx.onValueReceived
+          .map((v) => Uint8List.fromList(v))
+          .asBroadcastStream();
 
   @override
   Future<void> write(Uint8List data) async {

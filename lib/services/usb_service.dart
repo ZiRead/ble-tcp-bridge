@@ -11,12 +11,13 @@ import 'serial_port.dart';
 class UsbSerialPort implements SerialPort {
   final UsbPort _port;
   final String _label;
+  Stream<Uint8List>? _inputStream;
 
   UsbSerialPort(this._port, this._label);
 
   @override
   Stream<Uint8List> get inputStream =>
-      _port.inputStream ?? const Stream.empty();
+      _inputStream ??= (_port.inputStream ?? const Stream.empty()).asBroadcastStream();
 
   @override
   Future<void> write(Uint8List data) async {

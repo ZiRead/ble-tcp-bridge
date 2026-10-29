@@ -47,6 +47,8 @@ class TcpForegroundService : Service() {
         when (intent.action) {
             ACTION_STOP -> {
                 isRunning = false
+                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                nm.cancel(NOTIFICATION_ID)
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
                 return START_NOT_STICKY

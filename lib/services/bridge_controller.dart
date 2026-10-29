@@ -234,6 +234,7 @@ class BridgeController extends ChangeNotifier {
   Future<void> stopTcpServer() async {
     await tcpServer.stop();
     _tcpRunning = false;
+    TcpForegroundService.stop();
     notifyListeners();
   }
 

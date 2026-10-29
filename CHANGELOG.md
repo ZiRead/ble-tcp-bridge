@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — 2026-10-27
+
+### Added
+- **"Terminal" tab**: direct serial access with customizable view (font size,
+  text/background colors) and command input.
+- **Command history**: navigate previous commands with arrows; selected command
+  is highlighted.
+- **Status banner** on the Terminal tab (connection status).
+
+### Changed
+- Serial port streams are broadcast, allowing terminal and bridge to receive data
+  simultaneously.
+
+### Fixed
+- Terminal now receives device responses (broadcast streams).
+- Command history highlighting selects only the chosen occurrence.
+
 ## [1.2.5] — 2026-10-27
 
 ### Fixed

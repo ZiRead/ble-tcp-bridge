@@ -41,6 +41,10 @@ and a **local TCP server** on port **8080**.
 - **USB baud rate** selection (9600–115200), applied when connecting a USB device.
 - **Disable connecting to non-Serial devices** toggle.
 - **"About"** button with app info, GitHub link and license.
+- Interface language selection: **Russian / English** (persisted between launches).
+- **USB baud rate** selection (9600–115200), applied when connecting a USB device.
+- **Disable connecting to non-Serial devices** toggle.
+- **"About"** button with app info, GitHub link and license.
 
 ### 🌐 "TCP server" tab
 - Start/stop local TCP server on port **8080** (port is configurable).
@@ -50,6 +54,12 @@ and a **local TCP server** on port **8080**.
   - device → all TCP clients (broadcast);
   - any TCP client → device.
 - Byte counters, event log and log clearing.
+
+### ⌨️ "Terminal" tab
+- Direct serial communication: view device output and send commands.
+- Customizable appearance: font size, text/background colors.
+- Command history (up/down arrows) with highlight of the selected command.
+- UI adapts to the on-screen keyboard.
 
 ## Stack
 

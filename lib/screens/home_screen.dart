@@ -5,6 +5,7 @@ import '../services/settings_controller.dart';
 import 'devices_screen.dart';
 import 'settings_screen.dart';
 import 'tcp_screen.dart';
+import 'terminal_screen.dart';
 
 /// Главный экран с нижней навигацией:
 /// «Устройства», «TCP сервер», «Настройки».
@@ -28,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: const [
           DevicesScreen(),
           TcpScreen(),
+          TerminalScreen(),
           SettingsScreen(),
         ],
       ),
@@ -44,6 +46,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.dns_outlined),
             selectedIcon: const Icon(Icons.dns),
             label: s.tabTcp,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.terminal_outlined),
+            selectedIcon: const Icon(Icons.terminal),
+            label: s.tabTerminal,
           ),
           NavigationDestination(
             icon: const Icon(Icons.settings_outlined),

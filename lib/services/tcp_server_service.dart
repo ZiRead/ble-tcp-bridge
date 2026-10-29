@@ -88,7 +88,10 @@ class TcpServerService {
 
   /// Остановить сервер и закрыть всех клиентов.
   Future<void> stop() async {
-    if (!_running) return;
+    if (!_running) {
+      TcpForegroundService.stop();
+      return;
+    }
     _running = false;
 
     TcpForegroundService.stop();

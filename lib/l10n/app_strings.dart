@@ -13,6 +13,7 @@ class AppStrings {
   String get appTitle => 'BLE/USB TCP Bridge';
   String get tabDevices => isRu ? 'Устройства' : 'Devices';
   String get tabTcp => isRu ? 'TCP сервер' : 'TCP Server';
+  String get tabTerminal => isRu ? 'Терминал' : 'Terminal';
   String get tabSettings => isRu ? 'Настройки' : 'Settings';
 
   // ===== Статус подключения =====
@@ -136,9 +137,11 @@ class AppStrings {
       : 'Language change applies immediately';
 
   // ===== Скорость (baud rate) =====
-  String get settingsUsbBaudRate => isRu ? 'Скорость USB (baud rate)' : 'USB baud rate';
-  String get settingsDisableNonSerial =>
-      isRu ? 'Отключать подключение к не-Serial' : 'Disable connecting to non-Serial';
+  String get settingsUsbBaudRate =>
+      isRu ? 'Скорость USB (baud rate)' : 'USB baud rate';
+  String get settingsDisableNonSerial => isRu
+      ? 'Отключать подключение к не-Serial'
+      : 'Disable connecting to non-Serial';
   String get settingsRequestPermissions =>
       isRu ? 'Запросить разрешения' : 'Request permissions';
   String get settingsPermissionsRequested =>
@@ -149,15 +152,19 @@ class AppStrings {
   String get aboutTitle => isRu ? 'О приложении' : 'About';
   String get aboutDescription => isRu
       ? 'BLE / USB → TCP Bridge — мост между serial-устройствами '
-        '(BLE Serial, Bluetooth Classic SPP, USB UART) и локальным TCP-сервером. '
-        'Позволяет передавать данные от устройства к TCP-клиентам и обратно.'
+          '(BLE Serial, Bluetooth Classic SPP, USB UART) и локальным TCP-сервером. '
+          'Позволяет передавать данные от устройства к TCP-клиентам и обратно. '
+          'Включает терминал для прямого обмена с устройством.'
       : 'BLE / USB → TCP Bridge — a bridge between serial devices '
-        '(BLE Serial, Bluetooth Classic SPP, USB UART) and a local TCP server. '
-        'Forwards data between the device and TCP clients in both directions.';
-  String get aboutGithub => isRu ? 'Репозиторий на GitHub' : 'GitHub repository';
+          '(BLE Serial, Bluetooth Classic SPP, USB UART) and a local TCP server. '
+          'Forwards data between the device and TCP clients in both directions. '
+          'Includes a terminal for direct device communication.';
+  String get aboutGithub =>
+      isRu ? 'Репозиторий на GitHub' : 'GitHub repository';
   String get aboutLicense => isRu ? 'Лицензия: MIT' : 'License: MIT';
   String get aboutVersion => isRu ? 'Версия' : 'Version';
-  String get logDisconnected => isRu ? 'Устройство отключено' : 'Device disconnected';
+  String get logDisconnected =>
+      isRu ? 'Устройство отключено' : 'Device disconnected';
   String logConnectingToDevice(String name) =>
       isRu ? 'Подключение к "$name"...' : 'Connecting to "$name"...';
   String logConnected(String label) =>
@@ -179,8 +186,9 @@ class AppStrings {
       : 'Client disconnected: $address (total: $total)';
 
   // ===== BLE / Classic / USB (ошибки) =====
-  String get bleNotSupported =>
-      isRu ? 'Bluetooth не поддерживается этим устройством' : 'Bluetooth is not supported by this device';
+  String get bleNotSupported => isRu
+      ? 'Bluetooth не поддерживается этим устройством'
+      : 'Bluetooth is not supported by this device';
   String bleInitError(Object e) =>
       isRu ? 'Ошибка инициализации BLE: $e' : 'BLE initialization error: $e';
   String bleScanError(Object e) =>
@@ -189,10 +197,20 @@ class AppStrings {
       isRu ? 'Ошибка поиска: $e' : 'Search error: $e';
   String classicStartError(Object e) =>
       isRu ? 'Не удалось начать поиск: $e' : 'Failed to start discovery: $e';
-  String get usbPortCreateError =>
-      isRu ? 'Не удалось создать порт для USB устройства' : 'Failed to create port for USB device';
+  String get usbPortCreateError => isRu
+      ? 'Не удалось создать порт для USB устройства'
+      : 'Failed to create port for USB device';
   String get usbPortOpenError => isRu
       ? 'Не удалось открыть USB порт. Возможно, требуется разрешение на доступ к USB'
       : 'Failed to open USB port. USB access permission may be required';
+  String get terminalTitle => isRu ? 'Терминал' : 'Terminal';
+  String get terminalNoDevice => isRu
+      ? 'Нет подключенного serial-устройства'
+      : 'No serial device connected';
+  String get terminalInputHint =>
+      isRu ? 'Введите команду...' : 'Enter command...';
+  String get terminalFontSize => isRu ? 'Размер шрифта' : 'Font size';
+  String get terminalTextColor => isRu ? 'Цвет текста' : 'Text color';
+  String get terminalBgColor => isRu ? 'Цвет фона' : 'Background color';
   String get aboutClose => isRu ? 'Закрыть' : 'Close';
 }
